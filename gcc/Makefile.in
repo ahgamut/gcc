@@ -1231,6 +1231,8 @@ GCC_OBJS = gcc.o gcc-main.o ggc-none.o
 
 c-family-warn = $(STRICT_WARN)
 
+PORTCOSMO_OBJS = c-family/portcosmo.o
+
 # Language-specific object files shared by all C-family front ends.
 C_COMMON_OBJS = c-family/c-common.o c-family/c-cppbuiltin.o c-family/c-dump.o \
   c-family/c-format.o c-family/c-gimplify.o c-family/c-indentation.o \
@@ -1238,7 +1240,8 @@ C_COMMON_OBJS = c-family/c-common.o c-family/c-cppbuiltin.o c-family/c-dump.o \
   c-family/c-ppoutput.o c-family/c-pragma.o c-family/c-pretty-print.o \
   c-family/c-semantics.o c-family/c-ada-spec.o \
   c-family/c-ubsan.o c-family/known-headers.o \
-  c-family/c-attribs.o c-family/c-warn.o c-family/c-spellcheck.o
+  c-family/c-attribs.o c-family/c-warn.o c-family/c-spellcheck.o \
+  $(PORTCOSMO_OBJS)
 
 # Analyzer object files
 ANALYZER_OBJS = \
