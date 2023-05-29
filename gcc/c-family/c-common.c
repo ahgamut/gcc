@@ -51,6 +51,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "c-spellcheck.h"
 #include "selftest.h"
 #include "debug.h"
+#include "print-tree.h"
 
 cpp_reader *parse_in;		/* Declared in c-pragma.h.  */
 
@@ -2112,6 +2113,10 @@ check_case_value (location_t loc, tree value)
     value = perform_integral_promotions (value);
   else if (value != error_mark_node)
     {
+      if (flag_portcosmo) {
+          inform(loc, "we're here\n");
+          debug_tree(value);
+      }
       error_at (loc, "case label does not reduce to an integer constant");
       value = error_mark_node;
     }

@@ -1881,6 +1881,10 @@ fopenmp-simd
 C ObjC C++ ObjC++ Var(flag_openmp_simd)
 Enable OpenMP's SIMD directives.
 
+fportcosmo
+C C++ RejectNegative Var(flag_portcosmo)
+Enable AST rewriting for Cosmopolitan Libc magic numbers.
+
 foperator-names
 C++ ObjC++
 Recognize C++ keywords like \"compl\" and \"xor\".
