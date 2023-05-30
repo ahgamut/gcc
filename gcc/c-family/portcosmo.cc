@@ -19,50 +19,66 @@
 #include "c-family/portcosmo.internal.h"
 
 static tree maybe_get_ifsw_identifier(const char *);
+static tree replace_int_nonconst(location_t, tree);
 
 void portcosmo_show_tree(location_t loc, tree t) {
-    inform(loc, "attempting case substitution at: line %u, col %u\n",
+    INFORM(loc, "attempting case substitution at: line %u, col %u\n",
            LOCATION_LINE(loc), LOCATION_COLUMN(loc));
     debug_tree(t);
 }
 
 tree replace_case_nonconst(location_t loc, tree t) {
-    inform(loc, "attempting case substitution at: line %u, col %u\n",
+    INFORM(loc, "attempting case substitution at: line %u, col %u\n",
            LOCATION_LINE(loc), LOCATION_COLUMN(loc));
     debug_tree(t);
-    tree subs;
-
-    if (TREE_CODE(t) == VAR_DECL) {
-        subs = maybe_get_ifsw_identifier(IDENTIFIER_NAME(t));
-        if (subs != NULL_TREE) {
-            DEBUGF("substitution exists!\n");
-            debug_tree(subs);
-            subs = DECL_INITIAL(subs);
-        }
-    } else if (TREE_CODE(t) == NEGATE_EXPR &&
-               TREE_CODE(TREE_OPERAND(t, 1)) == VAR_DECL) {
-        subs = maybe_get_ifsw_identifier(IDENTIFIER_NAME(TREE_OPERAND(t, 1)));
-        if (subs != NULL_TREE) {
-            DEBUGF("substitution exists!\n");
-            subs = build1(NEGATE_EXPR, integer_type_node, DECL_INITIAL(subs));
-            debug_tree(subs);
-        }
-    } else if (TREE_CODE(t) == BIT_NOT_EXPR &&
-               TREE_CODE(TREE_OPERAND(t, 1)) == VAR_DECL) {
-        subs = maybe_get_ifsw_identifier(IDENTIFIER_NAME(TREE_OPERAND(t, 1)));
-        if (subs != NULL_TREE) {
-            DEBUGF("substitution exists!\n");
-            subs = build1(BIT_NOT_EXPR, integer_type_node, DECL_INITIAL(subs));
-            debug_tree(subs);
-        }
-    } else {
-        DEBUGF("substitution does not exist!\n");
-        subs = error_mark_node;
+    tree subs = replace_int_nonconst(loc, t);
+    if (subs != NULL_TREE) {
+        DEBUGF("folding...\n");
+        subs = c_fully_fold(subs, false, NULL, false);
+        /* this substitution was successful, so record
+         * the location for rewriting the thing later */
     }
     return subs;
 }
 
 /* internal functions */
+
+static tree replace_int_nonconst(location_t loc, tree t) {
+    /* t may be a case label, t may be part of a 
+     * initializer */
+    tree subs = NULL_TREE;
+    switch (TREE_CODE(t)) {
+        case VAR_DECL:
+            subs = maybe_get_ifsw_identifier(IDENTIFIER_NAME(t));
+            if (subs != NULL_TREE && TREE_STATIC(subs) && TREE_READONLY(subs)) {
+                DEBUGF("substitution exists\n");
+                subs = DECL_INITIAL(subs);
+                debug_tree(subs);
+            }
+            break;
+        case NOP_EXPR:
+            subs = replace_int_nonconst(loc, TREE_OPERAND(t, 0));
+            if (subs != NULL_TREE) {
+                subs = build1(NOP_EXPR, integer_type_node, subs);
+            }
+            break;
+        case NEGATE_EXPR:
+            subs = replace_int_nonconst(loc, TREE_OPERAND(t, 0));
+            if (subs != NULL_TREE) {
+                subs = build1(NEGATE_EXPR, integer_type_node, subs);
+            }
+            break;
+        case BIT_NOT_EXPR:
+            subs = replace_int_nonconst(loc, TREE_OPERAND(t, 0));
+            if (subs != NULL_TREE) {
+                subs = build1(BIT_NOT_EXPR, integer_type_node, subs);
+            }
+            break;
+        default:
+            subs = NULL_TREE;
+    }
+    return subs;
+}
 
 const char *get_tree_code_str(tree expr) {
 #define END_OF_BASE_TREE_CODES
