@@ -18,15 +18,48 @@
 ╚─────────────────────────────────────────────────────────────────────────────*/
 #include "c-family/portcosmo.internal.h"
 
-void portcosmo_show_tree(location_t loc, tree t) {
-    inform(loc, "attempting to subsitute a case: (%u, %u)\n", LOCATION_LINE(loc), LOCATION_COLUMN(loc));
-    debug_tree(t);
+static tree maybe_get_ifsw_identifier(const char *);
 
+void portcosmo_show_tree(location_t loc, tree t) {
+    inform(loc, "attempting case substitution at: line %u, col %u\n",
+           LOCATION_LINE(loc), LOCATION_COLUMN(loc));
+    debug_tree(t);
 }
 
 tree replace_case_nonconst(location_t loc, tree t) {
-    inform(loc, "attempting to subsitute a case here\n");
-    return NULL_TREE;
+    inform(loc, "attempting case substitution at: line %u, col %u\n",
+           LOCATION_LINE(loc), LOCATION_COLUMN(loc));
+    debug_tree(t);
+    tree subs;
+
+    if (TREE_CODE(t) == VAR_DECL) {
+        subs = maybe_get_ifsw_identifier(IDENTIFIER_NAME(t));
+        if (subs != NULL_TREE) {
+            DEBUGF("substitution exists!\n");
+            debug_tree(subs);
+            subs = DECL_INITIAL(subs);
+        }
+    } else if (TREE_CODE(t) == NEGATE_EXPR &&
+               TREE_CODE(TREE_OPERAND(t, 1)) == VAR_DECL) {
+        subs = maybe_get_ifsw_identifier(IDENTIFIER_NAME(TREE_OPERAND(t, 1)));
+        if (subs != NULL_TREE) {
+            DEBUGF("substitution exists!\n");
+            subs = build1(NEGATE_EXPR, integer_type_node, DECL_INITIAL(subs));
+            debug_tree(subs);
+        }
+    } else if (TREE_CODE(t) == BIT_NOT_EXPR &&
+               TREE_CODE(TREE_OPERAND(t, 1)) == VAR_DECL) {
+        subs = maybe_get_ifsw_identifier(IDENTIFIER_NAME(TREE_OPERAND(t, 1)));
+        if (subs != NULL_TREE) {
+            DEBUGF("substitution exists!\n");
+            subs = build1(BIT_NOT_EXPR, integer_type_node, DECL_INITIAL(subs));
+            debug_tree(subs);
+        }
+    } else {
+        DEBUGF("substitution does not exist!\n");
+        subs = error_mark_node;
+    }
+    return subs;
 }
 
 /* internal functions */
@@ -34,33 +67,45 @@ tree replace_case_nonconst(location_t loc, tree t) {
 const char *get_tree_code_str(tree expr) {
 #define END_OF_BASE_TREE_CODES
 #define DEFTREECODE(a, b, c, d) \
-  case a:                       \
-    return b;
-  switch (TREE_CODE(expr)) {
+    case a:                     \
+        return b;
+    switch (TREE_CODE(expr)) {
 #include "all-tree.def"
-    default:
-      return "<unknown>";
-  }
+        default:
+            return "<unknown>";
+    }
 #undef DEFTREECODE
 #undef END_OF_BASE_TREE_CODES
 }
 
+static tree maybe_get_ifsw_identifier(const char *s) {
+    char *result = (char *)xmalloc(strlen("__tmpcosmo_") + strlen(s) + 1);
+    strcpy(result, "__tmpcosmo_");
+    strcat(result, s);
+    tree t = maybe_get_identifier(result);
+    free(result);
+    if (t != NULL_TREE) {
+        t = lookup_name(t);
+    }
+    return t;
+}
+
 tree get_ifsw_identifier(char *s) {
-  char *result = (char *)xmalloc(strlen("__tmpcosmo_") + strlen(s) + 1);
-  strcpy(result, "__tmpcosmo_");
-  strcat(result, s);
-  tree t = lookup_name(get_identifier(result));
-  free(result);
-  return t;
+    char *result = (char *)xmalloc(strlen("__tmpcosmo_") + strlen(s) + 1);
+    strcpy(result, "__tmpcosmo_");
+    strcat(result, s);
+    tree t = lookup_name(get_identifier(result));
+    free(result);
+    return t;
 }
 
 int get_value_of_const(char *name) {
-  tree vx = get_ifsw_identifier(name);
-  int z = tree_to_shwi(DECL_INITIAL(vx));
-  return z;
+    tree vx = get_ifsw_identifier(name);
+    int z = tree_to_shwi(DECL_INITIAL(vx));
+    return z;
 }
 
 int check_magic_equal(tree value, char *varname) {
-  tree vx = get_ifsw_identifier(varname);
-  return tree_int_cst_equal(value, DECL_INITIAL(vx));
+    tree vx = get_ifsw_identifier(varname);
+    return tree_int_cst_equal(value, DECL_INITIAL(vx));
 }

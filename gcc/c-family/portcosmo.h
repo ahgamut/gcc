@@ -17,5 +17,6 @@
 #include <tree.h>
 
 void portcosmo_show_tree(location_t, tree);
+tree replace_case_nonconst(location_t, tree);
 
 #endif /* PORTCOSMO_H */
