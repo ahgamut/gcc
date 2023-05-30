@@ -16,11 +16,51 @@
 │ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR             │
 │ PERFORMANCE OF THIS SOFTWARE.                                                │
 ╚─────────────────────────────────────────────────────────────────────────────*/
-#include "c-family/portcosmo.h"
+#include "c-family/portcosmo.internal.h"
 
 void portcosmo_show_tree(location_t loc, tree t) {
-    inform(loc, "we're here\n");
+    inform(loc, "attempting to subsitute a case: (%u, %u)\n", LOCATION_LINE(loc), LOCATION_COLUMN(loc));
     debug_tree(t);
+
 }
 
+tree replace_case_nonconst(location_t loc, tree t) {
+    inform(loc, "attempting to subsitute a case here\n");
+    return NULL_TREE;
+}
 
+/* internal functions */
+
+const char *get_tree_code_str(tree expr) {
+#define END_OF_BASE_TREE_CODES
+#define DEFTREECODE(a, b, c, d) \
+  case a:                       \
+    return b;
+  switch (TREE_CODE(expr)) {
+#include "all-tree.def"
+    default:
+      return "<unknown>";
+  }
+#undef DEFTREECODE
+#undef END_OF_BASE_TREE_CODES
+}
+
+tree get_ifsw_identifier(char *s) {
+  char *result = (char *)xmalloc(strlen("__tmpcosmo_") + strlen(s) + 1);
+  strcpy(result, "__tmpcosmo_");
+  strcat(result, s);
+  tree t = lookup_name(get_identifier(result));
+  free(result);
+  return t;
+}
+
+int get_value_of_const(char *name) {
+  tree vx = get_ifsw_identifier(name);
+  int z = tree_to_shwi(DECL_INITIAL(vx));
+  return z;
+}
+
+int check_magic_equal(tree value, char *varname) {
+  tree vx = get_ifsw_identifier(varname);
+  return tree_int_cst_equal(value, DECL_INITIAL(vx));
+}
