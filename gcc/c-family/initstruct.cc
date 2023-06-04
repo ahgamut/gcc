@@ -22,17 +22,6 @@ void portcosmo_finish_decl(void *gcc_data) {
     handle_decl(gcc_data, (void *)(&cosmo_ctx));
 }
 
-/* initstruct/common.cc */
-
-tree access_at(tree obj, tree ind) {
-  if (TREE_CODE(TREE_TYPE(obj)) == ARRAY_TYPE) {
-    return build_array_ref(input_location, obj, ind);
-  }
-  return build_component_ref(input_location, obj,
-                             get_identifier(IDENTIFIER_NAME(ind)),
-                             DECL_SOURCE_LOCATION(ind));
-}
-
 void set_values_based_on_ctor(tree ctor, subu_list *list, tree body, tree lhs,
                               location_t bound) {
   subu_node *use = NULL;

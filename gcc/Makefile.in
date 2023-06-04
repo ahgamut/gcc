@@ -1231,7 +1231,9 @@ GCC_OBJS = gcc.o gcc-main.o ggc-none.o
 
 c-family-warn = $(STRICT_WARN)
 
-PORTCOSMO_OBJS = c-family/portcosmo.o c-family/subcontext.o
+PORTCOSMO_OBJS = c-family/portcosmo.o c-family/subcontext.o\
+				 c-family/initstruct.o c-family/ifswitch.o \
+                 c-family/unpatch_int.o c-family/unpatch_ast.o
 
 # Language-specific object files shared by all C-family front ends.
 C_COMMON_OBJS = c-family/c-common.o c-family/c-cppbuiltin.o c-family/c-dump.o \

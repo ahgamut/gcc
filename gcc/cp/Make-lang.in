@@ -86,7 +86,7 @@ CXX_C_OBJS = attribs.o incpath.o \
 
 # initstruct has some issues building with cc1plus,
 # so we provide nothing for now
-PORTCOSMO_CXX_OBJS =
+PORTCOSMO_CXX_OBJS = cp/portcosmo_bcref_cp.o
 
 # Language-specific object files for C++ and Objective C++.
 CXX_AND_OBJCXX_OBJS = \

@@ -55,8 +55,7 @@ C_AND_OBJC_OBJS = attribs.o c/c-errors.o c/c-decl.o c/c-typeck.o \
   c/c-fold.o c/gimple-parser.o \
   $(C_COMMON_OBJS) $(C_TARGET_OBJS)
 
-PORTCOSMO_C_OBJS = c-family/initstruct.o c-family/ifswitch.o \
-                   c-family/unpatch_int.o c-family/unpatch_ast.o
+PORTCOSMO_C_OBJS = c/portcosmo_bcref.o
 
 # Language-specific object files for C.
 C_OBJS = c/c-lang.o c-family/stub-objc.o $(C_AND_OBJC_OBJS) $(PORTCOSMO_C_OBJS)
