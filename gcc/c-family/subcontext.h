@@ -69,6 +69,6 @@ void construct_context(SubContext *);
 void check_context_clear(SubContext *, location_t);
 void cleanup_context(SubContext *);
 
-int arg_should_be_modded(tree, const subu_node *, tree *);
+int arg_should_be_unpatched(tree, const subu_node *, tree *);
 
 #endif /* SUBCONTEXT_H */

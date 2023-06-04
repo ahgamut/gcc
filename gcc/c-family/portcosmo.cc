@@ -20,7 +20,7 @@
 #include "c-family/subcontext.h"
 
 static tree maybe_get_ifsw_identifier(const char *);
-static tree replace_int_nonconst(location_t, tree);
+static tree patch_int_nonconst(location_t, tree);
 
 struct SubContext cosmo_ctx;
 static int ctx_inited = 0;
@@ -33,8 +33,10 @@ void portcosmo_setup() {
 }
 
 void portcosmo_teardown() {
-    cleanup_context(&cosmo_ctx);
-    ctx_inited = 0;
+    if (1 == ctx_inited) {
+        cleanup_context(&cosmo_ctx);
+        ctx_inited = 0;
+    }
 }
 
 void portcosmo_show_tree(location_t loc, tree t) {
@@ -43,11 +45,11 @@ void portcosmo_show_tree(location_t loc, tree t) {
     debug_tree(t);
 }
 
-tree replace_case_nonconst(location_t loc, tree t) {
+tree patch_case_nonconst(location_t loc, tree t) {
     INFORM(loc, "attempting case substitution at: line %u, col %u\n",
            LOCATION_LINE(loc), LOCATION_COLUMN(loc));
     debug_tree(t);
-    tree subs = replace_int_nonconst(loc, t);
+    tree subs = patch_int_nonconst(loc, t);
     if (subs != NULL_TREE) {
         DEBUGF("folding...\n");
         subs = c_fully_fold(subs, false, NULL, false);
@@ -57,9 +59,13 @@ tree replace_case_nonconst(location_t loc, tree t) {
     return subs;
 }
 
+tree unpatch_switch(location_t loc, tree t) {
+    return t;
+}
+
 /* internal functions */
 
-static tree replace_int_nonconst(location_t loc, tree t) {
+static tree patch_int_nonconst(location_t loc, tree t) {
     /* t may be an integer inside a case label, or
      * t may be an integer inside an initializer */
     tree subs = NULL_TREE;
@@ -73,19 +79,19 @@ static tree replace_int_nonconst(location_t loc, tree t) {
             }
             break;
         case NOP_EXPR:
-            subs = replace_int_nonconst(loc, TREE_OPERAND(t, 0));
+            subs = patch_int_nonconst(loc, TREE_OPERAND(t, 0));
             if (subs != NULL_TREE) {
                 subs = build1(NOP_EXPR, integer_type_node, subs);
             }
             break;
         case NEGATE_EXPR:
-            subs = replace_int_nonconst(loc, TREE_OPERAND(t, 0));
+            subs = patch_int_nonconst(loc, TREE_OPERAND(t, 0));
             if (subs != NULL_TREE) {
                 subs = build1(NEGATE_EXPR, integer_type_node, subs);
             }
             break;
         case BIT_NOT_EXPR:
-            subs = replace_int_nonconst(loc, TREE_OPERAND(t, 0));
+            subs = patch_int_nonconst(loc, TREE_OPERAND(t, 0));
             if (subs != NULL_TREE) {
                 subs = build1(BIT_NOT_EXPR, integer_type_node, subs);
             }
