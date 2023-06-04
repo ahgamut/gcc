@@ -69,6 +69,25 @@ tree patch_case_nonconst(location_t loc, tree t) {
     return subs;
 }
 
+tree patch_init_nonconst(location_t loc, tree t) {
+    INFORM(loc, "attempting init substitution at: line %u, col %u\n",
+           LOCATION_LINE(loc), LOCATION_COLUMN(loc));
+    debug_tree(t);
+    tree subs = NULL_TREE;
+    const char *name = NULL;
+    if (cosmo_ctx.active) {
+        subs = patch_int_nonconst(loc, t, &name);
+        if (subs != NULL_TREE) {
+            DEBUGF("folding...\n");
+            subs = c_fully_fold(subs, false, NULL, false);
+            /* this substitution was successful, so record
+             * the location for rewriting the thing later */
+            add_context_subu(&cosmo_ctx, loc, name, strlen(name), SW_CASE);
+        }
+    }
+    return subs;
+}
+
 /* internal functions */
 
 static tree patch_int_nonconst(location_t loc, tree t, const char **res) {

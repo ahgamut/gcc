@@ -46,6 +46,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "omp-general.h"
 #include "c-family/c-objc.h"
 #include "c-family/c-ubsan.h"
+#include "c-family/portcosmo.h"
 #include "gomp-constants.h"
 #include "spellcheck-tree.h"
 #include "gcc-rich-location.h"
@@ -8170,8 +8171,17 @@ digest_init (location_t init_loc, tree type, tree init, tree origtype,
 	       && !initializer_constant_valid_p (inside_init,
 						 TREE_TYPE (inside_init)))
 	{
-	  error_init (init_loc, "initializer element is not constant");
-	  inside_init = error_mark_node;
+      if (flag_portcosmo) {
+        inside_init = patch_init_nonconst(init_loc, inside_init);
+        if (inside_init == NULL_TREE) {
+	      error_init (init_loc, "initializer element is not constant");
+	      inside_init = error_mark_node;
+        }
+      }
+      else {
+	    error_init (init_loc, "initializer element is not constant");
+	    inside_init = error_mark_node;
+      }
 	}
       else if (require_constant && !maybe_const)
 	pedwarn_init (init_loc, OPT_Wpedantic,
