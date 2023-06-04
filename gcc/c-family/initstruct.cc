@@ -18,6 +18,10 @@
 ╚─────────────────────────────────────────────────────────────────────────────*/
 #include "c-family/initstruct.h"
 
+void portcosmo_finish_decl(void *gcc_data) {
+    handle_decl(gcc_data, (void *)(&cosmo_ctx));
+}
+
 /* initstruct/common.cc */
 
 tree access_at(tree obj, tree ind) {
@@ -46,7 +50,7 @@ void set_values_based_on_ctor(tree ctor, subu_list *list, tree body, tree lhs,
       if (!started && i <= iprev) continue;
       if (TREE_CODE(val) == INTEGER_CST) {
         for (use = list->head; use; use = use->next) {
-          found = arg_should_be_modded(val, use, &replacement);
+          found = arg_should_be_unpatched(val, use, &replacement);
           if (found) break;
         }
         if (found) {
@@ -202,7 +206,7 @@ int build_modded_int_declaration(tree *dxpr, SubContext *ctx, subu_node *use) {
   tree replacement = NULL_TREE;
 
   if (INTEGRAL_TYPE_P(TREE_TYPE(dcl)) &&
-      arg_should_be_modded(DECL_INITIAL(dcl), use, &replacement)) {
+      arg_should_be_unpatched(DECL_INITIAL(dcl), use, &replacement)) {
     if (TREE_READONLY(dcl)) {
       error_at(EXPR_LOCATION(dcl), "cannot substitute this constant\n");
       /* actually I can, but the issue is if one of gcc's optimizations
@@ -299,7 +303,7 @@ void modify_local_struct_ctor(tree ctor, subu_list *list, location_t bound) {
       // debug_tree(val);
       if (TREE_CODE(val) == INTEGER_CST) {
         for (use = list->head; use; use = use->next) {
-          found = arg_should_be_modded(val, use, &replacement);
+          found = arg_should_be_unpatched(val, use, &replacement);
           if (found) break;
         }
         if (found) {
@@ -325,24 +329,6 @@ void modify_local_struct_ctor(tree ctor, subu_list *list, location_t bound) {
       break;
     }
   }
-}
-
-tree copy_struct_ctor(tree ctor) {
-  tree ind = NULL_TREE;
-  tree val = NULL_TREE;
-  constructor_elt x = {.index = NULL, .value = NULL};
-  unsigned int i = 0;
-  tree dupe = build0(CONSTRUCTOR, TREE_TYPE(ctor));
-  FOR_EACH_CONSTRUCTOR_ELT(CONSTRUCTOR_ELTS(ctor), i, ind, val) {
-    x.index = copy_node(ind);
-    if (TREE_CODE(val) == CONSTRUCTOR) {
-      x.value = copy_struct_ctor(val);
-    } else {
-      x.value = copy_node(val);
-    }
-    vec_safe_push(((tree_constructor *)(dupe))->elts, x);
-  }
-  return dupe;
 }
 
 void build_modded_declaration(tree *dxpr, SubContext *ctx, location_t bound) {

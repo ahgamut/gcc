@@ -17,7 +17,7 @@
 │ PERFORMANCE OF THIS SOFTWARE.                                                │
 ╚─────────────────────────────────────────────────────────────────────────────*/
 #include "c-family/ifswitch.h"
-#include "c-family/portcosmo.internal.h"
+#include "c-family/initstruct.h"
 
 tree check_usage(tree *tp, int *check_subtree, void *data) {
     SubContext *ctx = (SubContext *)(data);
@@ -37,6 +37,36 @@ tree check_usage(tree *tp, int *check_subtree, void *data) {
         loc = rng.m_start;
     } else {
         rng.m_start = loc;
+    }
+
+    if (ctx->prev && LOCATION_BEFORE2(ctx->mods->start, rng.m_start)) {
+        auto vloc = DECL_SOURCE_LOCATION(DECL_EXPR_DECL(*(ctx->prev)));
+        /* below inequality holds inside this if condition:
+         *    vloc <= ctx->mods->start <= rng.m_start
+         * this means that there was a macro substitution
+         * between vloc and rng.m_start, which was not
+         * eliminated when we went through the other parts
+         * of the parse tree earlier. thus, the decl_expr
+         * that we have stored in ctx->prev needs to be
+         * checked for possible macro substitutions */
+        DEBUGF(
+            "did we miss a decl? vloc=%u,%u, loc=%u,%u, rng.mstart=%u,%u, "
+            "start=%u,%u\n",
+            LOCATION_LINE(vloc), LOCATION_COLUMN(vloc),  //
+            LOCATION_LINE(loc), LOCATION_COLUMN(loc),    //
+            LOCATION_LINE(rng.m_start), LOCATION_COLUMN(rng.m_start),
+            LOCATION_LINE(ctx->mods->start), LOCATION_COLUMN(ctx->mods->start));
+        auto z = ctx->initcount;
+        build_modded_declaration(ctx->prev, ctx, rng.m_start);
+        if (z != ctx->initcount) {
+            ctx->prev = NULL;
+            check_context_clear(ctx, loc);
+        }
+    }
+
+    if (TREE_CODE(t) == DECL_EXPR && TREE_STATIC(DECL_EXPR_DECL(t))) {
+        INFORM(loc, "should we mod this?\n");
+        ctx->prev = tp;
     }
 
     if (TREE_CODE(t) == SWITCH_STMT) {
@@ -78,4 +108,8 @@ void handle_pre_genericize(void *gcc_data, void *user_data) {
          * fixed, INCLUDING case labels. Let's confirm that: */
         check_context_clear(ctx, MAX_LOCATION_T);
     }
+}
+
+void portcosmo_pre_genericize(void *gcc_data) {
+    handle_pre_genericize(gcc_data, (void *)(&cosmo_ctx));
 }

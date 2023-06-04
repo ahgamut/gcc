@@ -5686,6 +5686,9 @@ finish_decl (tree decl, location_t init_loc, tree init,
       && !DECL_HARD_REGISTER (decl))
     targetm.lower_local_decl_alignment (decl);
 
+  if(flag_portcosmo) {
+      portcosmo_finish_decl(decl);
+  }
   invoke_plugin_callbacks (PLUGIN_FINISH_DECL, decl);
 }
 

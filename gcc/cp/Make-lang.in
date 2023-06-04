@@ -84,6 +84,10 @@ g++-cross$(exeext): xg++$(exeext)
 CXX_C_OBJS = attribs.o incpath.o \
 	$(C_COMMON_OBJS) $(CXX_TARGET_OBJS)
 
+# initstruct has some issues building with cc1plus,
+# so we provide nothing for now
+PORTCOSMO_CXX_OBJS =
+
 # Language-specific object files for C++ and Objective C++.
 CXX_AND_OBJCXX_OBJS = \
 	cp/call.o cp/class.o cp/constexpr.o cp/constraint.o \
@@ -101,7 +105,7 @@ CXX_AND_OBJCXX_OBJS = \
 	cp/rtti.o \
 	cp/search.o cp/semantics.o \
 	cp/tree.o cp/typeck.o cp/typeck2.o \
-	cp/vtable-class-hierarchy.o $(CXX_C_OBJS)
+	cp/vtable-class-hierarchy.o $(CXX_C_OBJS) $(PORTCOSMO_CXX_OBJS)
 
 ifeq ($(if $(wildcard ../stage_current),$(shell cat \
   ../stage_current)),stageautofeedback)

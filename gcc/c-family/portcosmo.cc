@@ -16,9 +16,10 @@
 │ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR             │
 │ PERFORMANCE OF THIS SOFTWARE.                                                │
 ╚─────────────────────────────────────────────────────────────────────────────*/
-#include "c-family/ifswitch.h"
 #include "c-family/portcosmo.internal.h"
 #include "c-family/subcontext.h"
+#include "c-family/ifswitch.h"
+#include "c-family/initstruct.h"
 
 static tree maybe_get_ifsw_identifier(const char *);
 static tree patch_int_nonconst(location_t, tree, const char **);
@@ -40,10 +41,6 @@ void portcosmo_teardown() {
     }
 }
 
-void portcosmo_pre_genericize(void *gcc_data) {
-    handle_pre_genericize(gcc_data, (void *)(&cosmo_ctx));
-}
-
 void portcosmo_show_tree(location_t loc, tree t) {
     INFORM(loc, "attempting case substitution at: line %u, col %u\n",
            LOCATION_LINE(loc), LOCATION_COLUMN(loc));
@@ -63,7 +60,8 @@ tree patch_case_nonconst(location_t loc, tree t) {
             subs = c_fully_fold(subs, false, NULL, false);
             /* this substitution was successful, so record
              * the location for rewriting the thing later */
-            add_context_subu(&cosmo_ctx, loc, name, strlen(name), PORTCOSMO_SWCASE);
+            add_context_subu(&cosmo_ctx, loc, name, strlen(name),
+                             PORTCOSMO_SWCASE);
         }
     }
     return subs;
@@ -82,7 +80,8 @@ tree patch_init_nonconst(location_t loc, tree t) {
             subs = c_fully_fold(subs, false, NULL, false);
             /* this substitution was successful, so record
              * the location for rewriting the thing later */
-            add_context_subu(&cosmo_ctx, loc, name, strlen(name), PORTCOSMO_INITVAL);
+            add_context_subu(&cosmo_ctx, loc, name, strlen(name),
+                             PORTCOSMO_INITVAL);
         }
     }
     return subs;
@@ -148,10 +147,10 @@ static tree maybe_get_ifsw_identifier(const char *s) {
     strcat(result, s);
     tree t = maybe_get_identifier(result);
     free(result);
-    if (t != NULL_TREE) {
-        t = lookup_name(t);
+    if (t != NULL_TREE && lookup_name(t) != NULL_TREE) {
+        return lookup_name(t);
     }
-    return t;
+    return NULL_TREE;
 }
 
 tree get_ifsw_identifier(char *s) {

@@ -9797,7 +9797,7 @@ output_init_element (location_t loc, tree value, tree origtype,
   /* Proceed to check the constness of the original initializer.  */
   if (!initializer_constant_valid_p (value, TREE_TYPE (value)))
     {
-      if (require_constant_value)
+      if (require_constant_value && !flag_portcosmo)
 	{
 	  error_init (loc, "initializer element is not constant");
 	  value = error_mark_node;

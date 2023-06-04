@@ -75,4 +75,7 @@ void cleanup_context(SubContext *);
 
 int arg_should_be_unpatched(tree, const subu_node *, tree *);
 
+/* declaring cosmo_ctx here so initstruct knows it exists */
+extern struct SubContext cosmo_ctx;
+
 #endif /* SUBCONTEXT_H */

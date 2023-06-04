@@ -11,4 +11,5 @@ void modify_local_struct_ctor(tree, subu_list *, location_t);
 
 void set_values_based_on_ctor(tree, subu_list *, tree, tree, location_t);
 void handle_decl(void *, void *);
+tree access_at(tree, tree);
 #endif /* INITSTRUCT_H */
