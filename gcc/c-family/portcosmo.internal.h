@@ -36,4 +36,6 @@ int check_magic_equal(tree, char *);
 
 #define STRING_BUFFER_SIZE 192
 
+void handle_pre_genericize(void *, void *);
+
 #endif /* PORTCOSMO.INTERNAL_H */

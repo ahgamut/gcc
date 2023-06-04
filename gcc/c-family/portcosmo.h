@@ -18,8 +18,8 @@
 
 void portcosmo_setup();
 void portcosmo_teardown();
+void portcosmo_pre_genericize(void*);
 void portcosmo_show_tree(location_t, tree);
 tree patch_case_nonconst(location_t, tree);
-tree unpatch_switch(location_t, tree);
 
 #endif /* PORTCOSMO_H */
