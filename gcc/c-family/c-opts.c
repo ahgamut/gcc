@@ -41,6 +41,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "mkdeps.h"
 #include "dumpfile.h"
 #include "file-prefix-map.h"    /* add_*_prefix_map()  */
+#include "c-family/portcosmo.h"
 
 #ifndef DOLLARS_IN_IDENTIFIERS
 # define DOLLARS_IN_IDENTIFIERS true
@@ -1196,6 +1197,11 @@ c_common_init (void)
       return false;
     }
 
+  if (flag_portcosmo)
+    {
+        portcosmo_setup();
+    }
+
   return true;
 }
 
@@ -1281,6 +1287,10 @@ c_common_finish (void)
   /* For performance, avoid tearing down cpplib's internal structures
      with cpp_destroy ().  */
   cpp_finish (parse_in, deps_stream);
+  if(flag_portcosmo) 
+    {
+        portcosmo_teardown();
+    }
 
   if (deps_stream && deps_stream != out_stream && deps_stream != stdout
       && (ferror (deps_stream) || fclose (deps_stream)))
@@ -1288,6 +1298,7 @@ c_common_finish (void)
 
   if (out_stream && (ferror (out_stream) || fclose (out_stream)))
     fatal_error (input_location, "when writing output to %s: %m", out_fname);
+
 }
 
 /* Either of two environment variables can specify output of

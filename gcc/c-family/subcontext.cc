@@ -198,7 +198,7 @@ int check_empty_subu_list(subu_list *list, location_t start) {
 }
 
 void construct_context(SubContext *ctx) {
-  ctx->active = 0;
+  ctx->active = 1;
   ctx->mods = init_subu_list();
   ctx->prev = NULL;
   ctx->switchcount = 0;
@@ -237,4 +237,5 @@ void cleanup_context(SubContext *ctx) {
     inform(UNKNOWN_LOCATION, "modified %u other macro uses", ctx->subcount);
   }
   ctx->subcount = 0;
+  ctx->active = 0;
 }

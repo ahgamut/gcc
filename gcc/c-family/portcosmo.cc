@@ -23,13 +23,18 @@ static tree maybe_get_ifsw_identifier(const char *);
 static tree replace_int_nonconst(location_t, tree);
 
 struct SubContext cosmo_ctx;
+static int ctx_inited = 0;
 
 void portcosmo_setup() {
-    construct_context(&cosmo_ctx);
+    if (0 == ctx_inited) {
+        construct_context(&cosmo_ctx);
+        ctx_inited = 1;
+    }
 }
 
 void portcosmo_teardown() {
     cleanup_context(&cosmo_ctx);
+    ctx_inited = 0;
 }
 
 void portcosmo_show_tree(location_t loc, tree t) {
