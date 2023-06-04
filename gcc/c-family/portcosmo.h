@@ -16,6 +16,8 @@
 #include <tree-iterator.h>
 #include <tree.h>
 
+void portcosmo_setup();
+void portcosmo_teardown();
 void portcosmo_show_tree(location_t, tree);
 tree replace_case_nonconst(location_t, tree);
 

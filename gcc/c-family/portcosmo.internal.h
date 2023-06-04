@@ -1,5 +1,5 @@
-#ifndef PORTCOSMO.INTERNAL_H
-#define PORTCOSMO.INTERNAL_H
+#ifndef PORTCOSMO_INTERNAL_H
+#define PORTCOSMO_INTERNAL_H
 #include "c-family/portcosmo.h"
 
 const char *get_tree_code_str(tree);

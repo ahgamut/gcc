@@ -17,9 +17,20 @@
 │ PERFORMANCE OF THIS SOFTWARE.                                                │
 ╚─────────────────────────────────────────────────────────────────────────────*/
 #include "c-family/portcosmo.internal.h"
+#include "c-family/subcontext.h"
 
 static tree maybe_get_ifsw_identifier(const char *);
 static tree replace_int_nonconst(location_t, tree);
+
+struct SubContext cosmo_ctx;
+
+void portcosmo_setup() {
+    construct_context(&cosmo_ctx);
+}
+
+void portcosmo_teardown() {
+    cleanup_context(&cosmo_ctx);
+}
 
 void portcosmo_show_tree(location_t loc, tree t) {
     INFORM(loc, "attempting case substitution at: line %u, col %u\n",
@@ -44,8 +55,8 @@ tree replace_case_nonconst(location_t loc, tree t) {
 /* internal functions */
 
 static tree replace_int_nonconst(location_t loc, tree t) {
-    /* t may be a case label, t may be part of a 
-     * initializer */
+    /* t may be an integer inside a case label, or
+     * t may be an integer inside an initializer */
     tree subs = NULL_TREE;
     switch (TREE_CODE(t)) {
         case VAR_DECL:
