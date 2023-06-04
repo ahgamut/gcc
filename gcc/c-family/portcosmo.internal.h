@@ -40,7 +40,7 @@ int check_magic_equal(tree, char *);
 #define IDENTIFIER_NAME(z)        IDENTIFIER_POINTER(DECL_NAME((z)))
 #define BUILD_STRING_AS_TREE(str) build_string_literal(strlen((str)) + 1, (str))
 
-#ifndef COSMO_NDEBUG
+#if 0
 #define DEBUGF(...) fprintf(stderr, "<DEBUG> " __VA_ARGS__)
 #define INFORM(...) inform(__VA_ARGS__)
 #else

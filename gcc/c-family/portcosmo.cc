@@ -50,7 +50,6 @@ void portcosmo_show_tree(location_t loc, tree t) {
 tree patch_case_nonconst(location_t loc, tree t) {
     INFORM(loc, "attempting case substitution at: line %u, col %u\n",
            LOCATION_LINE(loc), LOCATION_COLUMN(loc));
-    debug_tree(t);
     tree subs = NULL_TREE;
     const char *name = NULL;
     if (cosmo_ctx.active) {
@@ -70,7 +69,6 @@ tree patch_case_nonconst(location_t loc, tree t) {
 tree patch_init_nonconst(location_t loc, tree t) {
     INFORM(loc, "attempting init substitution at: line %u, col %u\n",
            LOCATION_LINE(loc), LOCATION_COLUMN(loc));
-    debug_tree(t);
     tree subs = NULL_TREE;
     const char *name = NULL;
     if (cosmo_ctx.active) {
@@ -98,7 +96,6 @@ static tree patch_int_nonconst(location_t loc, tree t, const char **res) {
             subs = maybe_get_ifsw_identifier(IDENTIFIER_NAME(t));
             if (subs != NULL_TREE && TREE_STATIC(subs) && TREE_READONLY(subs)) {
                 subs = DECL_INITIAL(subs);
-                debug_tree(subs);
                 *res = IDENTIFIER_NAME(t);
                 DEBUGF("substitution exists %s\n", *res);
             }
