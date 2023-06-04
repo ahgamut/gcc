@@ -36,7 +36,7 @@ void delete_subu(subu_node *node) {
   node->loc = 0x0;
   free(node->name);
   node->next = NULL;
-  node->tp = UNKNOWN;
+  node->tp = PORTCOSMO_UNKNOWN;
   free(node);
 }
 

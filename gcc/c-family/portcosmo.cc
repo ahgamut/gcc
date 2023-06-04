@@ -63,7 +63,7 @@ tree patch_case_nonconst(location_t loc, tree t) {
             subs = c_fully_fold(subs, false, NULL, false);
             /* this substitution was successful, so record
              * the location for rewriting the thing later */
-            add_context_subu(&cosmo_ctx, loc, name, strlen(name), SW_CASE);
+            add_context_subu(&cosmo_ctx, loc, name, strlen(name), PORTCOSMO_SWCASE);
         }
     }
     return subs;
@@ -82,7 +82,7 @@ tree patch_init_nonconst(location_t loc, tree t) {
             subs = c_fully_fold(subs, false, NULL, false);
             /* this substitution was successful, so record
              * the location for rewriting the thing later */
-            add_context_subu(&cosmo_ctx, loc, name, strlen(name), SW_CASE);
+            add_context_subu(&cosmo_ctx, loc, name, strlen(name), PORTCOSMO_INITVAL);
         }
     }
     return subs;

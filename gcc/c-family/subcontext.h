@@ -2,7 +2,11 @@
 #define SUBCONTEXT_H
 #include "c-family/portcosmo.internal.h"
 
-enum SubstType { UNKNOWN = 0, SW_CASE = 1, INITVAL = 2 };
+enum SubstType { 
+    PORTCOSMO_UNKNOWN = 0, 
+    PORTCOSMO_SWCASE = 1, 
+    PORTCOSMO_INITVAL = 2 
+};
 
 struct _subu_node {
   /* a node indicating that an ifswitch substitution has occurred.
