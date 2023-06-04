@@ -57,25 +57,6 @@ int arg_should_be_unpatched(tree arg, const subu_node *use, tree *rep_ptr) {
       }
     }
     return 0;
-  } else if (TREE_CODE(arg) == NOP_EXPR &&
-             TREE_OPERAND(arg, 0) == get_ifsw_identifier(use->name)) {
-    /* we have a situation where the compiler did not fold
-     * the constant, ie the AST has something like
-     *
-     * foo(x, __tmpcosmo_VAR);
-     *
-     * instead of
-     *
-     * foo(x, <an integer value>);
-     *
-     * in that case, this check should activate, as
-     * get_ifsw_identifier will return __tmpcosmo_VAR,
-     * and we return the modification necessary, ie:
-     *
-     * foo(x, VAR);
-     * */
-    *rep_ptr = build1(NOP_EXPR, integer_type_node, VAR_NAME_AS_TREE(use->name));
-    return 1;
   }
 
   return 0;
