@@ -36,6 +36,8 @@ int arg_should_be_unpatched(tree arg, const subu_node *use, tree *rep_ptr) {
           build1(NOP_EXPR, integer_type_node, VAR_NAME_AS_TREE(use->name));
       INFORM(use->loc, "unpatched an integer here with %s\n", use->name);
       TREE_USED(subbed_var) = 0;
+      DECL_NAMELESS(subbed_var) = 1;
+      DECL_READ_P(subbed_var) = 0;
       return 1;
     }
     /* here you might want to handle some
@@ -51,6 +53,8 @@ int arg_should_be_unpatched(tree arg, const subu_node *use, tree *rep_ptr) {
         *rep_ptr =
             build1(NEGATE_EXPR, integer_type_node, VAR_NAME_AS_TREE(use->name));
         TREE_USED(subbed_var) = 0;
+        DECL_NAMELESS(subbed_var) = 1;
+        DECL_READ_P(subbed_var) = 0;
         return 1;
       }
 
@@ -60,6 +64,8 @@ int arg_should_be_unpatched(tree arg, const subu_node *use, tree *rep_ptr) {
         *rep_ptr = build1(BIT_NOT_EXPR, integer_type_node,
                           VAR_NAME_AS_TREE(use->name));
         TREE_USED(subbed_var) = 0;
+        DECL_READ_P(subbed_var) = 0;
+        DECL_NAMELESS(subbed_var) = 1;
         return 1;
       }
     }
