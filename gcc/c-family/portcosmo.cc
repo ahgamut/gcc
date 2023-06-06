@@ -21,7 +21,6 @@
 #include "c-family/ifswitch.h"
 #include "c-family/initstruct.h"
 
-static tree maybe_get_ifsw_identifier(const char *);
 static tree patch_int_nonconst(location_t, tree, const char **);
 
 struct SubContext cosmo_ctx;
@@ -138,7 +137,7 @@ const char *get_tree_code_str(tree expr) {
 #undef END_OF_BASE_TREE_CODES
 }
 
-static tree maybe_get_ifsw_identifier(const char *s) {
+tree maybe_get_ifsw_identifier(const char *s) {
     char *result = (char *)xmalloc(strlen("__tmpcosmo_") + strlen(s) + 1);
     strcpy(result, "__tmpcosmo_");
     strcat(result, s);

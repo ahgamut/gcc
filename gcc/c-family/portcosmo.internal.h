@@ -19,6 +19,7 @@
 const char *get_tree_code_str(tree);
 int get_value_of_const(char *);
 tree get_ifsw_identifier(char *);
+tree maybe_get_ifsw_identifier(const char *);
 int check_magic_equal(tree, char *);
 
 #define EXPR_LOC_LINE(x)      LOCATION_LINE(EXPR_LOCATION((x)))

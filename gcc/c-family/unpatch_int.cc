@@ -23,7 +23,11 @@ int arg_should_be_unpatched(tree arg, const subu_node *use, tree *rep_ptr) {
    * if we are returning 0, rep_ptr is unchanged.
    * use is not affected! */
   if (TREE_CODE(arg) == INTEGER_CST) {
-    tree vx = DECL_INITIAL(get_ifsw_identifier(use->name));
+    tree subbed_var = maybe_get_ifsw_identifier(use->name);
+    if (subbed_var == NULL_TREE) {
+        return 0;
+    }
+    tree vx = DECL_INITIAL(subbed_var);
     if (tree_int_cst_equal(arg, vx)) {
       /* if this is an integer constant, AND its
        * value is equal to the macro we substituted,
@@ -31,6 +35,7 @@ int arg_should_be_unpatched(tree arg, const subu_node *use, tree *rep_ptr) {
       *rep_ptr =
           build1(NOP_EXPR, integer_type_node, VAR_NAME_AS_TREE(use->name));
       INFORM(use->loc, "unpatched an integer here with %s\n", use->name);
+      TREE_USED(subbed_var) = 0;
       return 1;
     }
     /* here you might want to handle some
@@ -45,6 +50,7 @@ int arg_should_be_unpatched(tree arg, const subu_node *use, tree *rep_ptr) {
         INFORM(use->loc, "unpatched an integer here with -%s\n", use->name);
         *rep_ptr =
             build1(NEGATE_EXPR, integer_type_node, VAR_NAME_AS_TREE(use->name));
+        TREE_USED(subbed_var) = 0;
         return 1;
       }
 
@@ -53,6 +59,7 @@ int arg_should_be_unpatched(tree arg, const subu_node *use, tree *rep_ptr) {
         INFORM(use->loc, "unpatched an integer here with ~%s\n", use->name);
         *rep_ptr = build1(BIT_NOT_EXPR, integer_type_node,
                           VAR_NAME_AS_TREE(use->name));
+        TREE_USED(subbed_var) = 0;
         return 1;
       }
     }
