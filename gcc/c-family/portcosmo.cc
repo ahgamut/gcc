@@ -25,11 +25,57 @@ static tree patch_int_nonconst(location_t, tree, const char **);
 
 struct SubContext cosmo_ctx;
 static int ctx_inited = 0;
+static void (*other_define) (cpp_reader *, location_t, cpp_hashnode *) = NULL;
+
+void check_macro_define(cpp_reader *reader, location_t loc,
+                        cpp_hashnode *node) {
+  const char *defn = (const char *)cpp_macro_definition(reader, node);
+  if (cosmo_ctx.active && strstr(defn, "__tmpcosmo_") == defn)
+  {
+    const char *arg_start = defn + strlen("__tmpcosmo_");
+    const char *arg_end = strstr(arg_start, " ");
+    if (!arg_start || !arg_end || arg_end - arg_start < 1) return;
+    char* name = xstrndup(arg_start, arg_end - arg_start);
+    char* val = xstrdup(arg_end);
+    long long val2 = strtoll(arg_end, NULL, 0);
+    if (val2 == 0) {
+        cpp_error_at(parse_in, CPP_DL_ERROR, loc,
+                "cannot parse portcosmo temporary constant\n");
+        cosmo_ctx.active = 0;
+    } else {
+        if (cosmo_ctx.map->get(name)) {
+            cpp_error_at(parse_in, CPP_DL_ERROR, loc,
+                    "duplicate portcosmo temporary constant\n");
+            cosmo_ctx.active = 0;
+        } else {
+            tmpconst z;
+            z.raw = val2; 
+            z.t = build_int_cst(long_long_integer_type_node, val2);
+            cosmo_ctx.map->put(name, z);
+            INFORM(loc, "added temporary for %s\n", name);
+        }
+    }
+    /* not freeing name because it's in the hashmap */
+    free(val);
+  }
+  else if(other_define) {
+     DEBUGF("we should just let this be %s\n", defn);
+     other_define(reader, loc, node);
+  }
+}
 
 void portcosmo_setup() {
+    cpp_callbacks *cbs = cpp_get_callbacks(parse_in);
     if (flag_portcosmo && 0 == ctx_inited) {
         construct_context(&cosmo_ctx);
         ctx_inited = 1;
+        if (cbs) {
+            if (cbs->define) {
+                other_define = cbs->define;
+                /* TODO: do we need for cbs->under as well? */
+            }
+            cbs->define = check_macro_define;
+        }
     }
 }
 
@@ -92,9 +138,8 @@ static tree patch_int_nonconst(location_t loc, tree t, const char **res) {
     tree subs = NULL_TREE;
     switch (TREE_CODE(t)) {
         case VAR_DECL:
-            subs = maybe_get_ifsw_identifier(IDENTIFIER_NAME(t));
-            if (subs != NULL_TREE && TREE_STATIC(subs) && TREE_READONLY(subs)) {
-                subs = DECL_INITIAL(subs);
+            subs = maybe_get_tmpconst_value(IDENTIFIER_NAME(t));
+            if (subs != NULL_TREE) {
                 *res = IDENTIFIER_NAME(t);
                 DEBUGF("substitution exists %s\n", *res);
             }
@@ -137,34 +182,14 @@ const char *get_tree_code_str(tree expr) {
 #undef END_OF_BASE_TREE_CODES
 }
 
-tree maybe_get_ifsw_identifier(const char *s) {
-    char *result = (char *)xmalloc(strlen("__tmpcosmo_") + strlen(s) + 1);
-    strcpy(result, "__tmpcosmo_");
-    strcat(result, s);
-    tree t = maybe_get_identifier(result);
+tree maybe_get_tmpconst_value(const char *s) {
+    char *result = xstrdup(s);
+    tmpconst *z = cosmo_ctx.map->get(result);
     free(result);
-    if (t != NULL_TREE && lookup_name(t) != NULL_TREE) {
-        return lookup_name(t);
-    }
-    return NULL_TREE;
-}
-
-tree get_ifsw_identifier(char *s) {
-    char *result = (char *)xmalloc(strlen("__tmpcosmo_") + strlen(s) + 1);
-    strcpy(result, "__tmpcosmo_");
-    strcat(result, s);
-    tree t = lookup_name(get_identifier(result));
-    free(result);
-    return t;
-}
-
-int get_value_of_const(char *name) {
-    tree vx = get_ifsw_identifier(name);
-    int z = tree_to_shwi(DECL_INITIAL(vx));
-    return z;
+    return z ? z->t : NULL_TREE;
 }
 
 int check_magic_equal(tree value, char *varname) {
-    tree vx = get_ifsw_identifier(varname);
-    return tree_int_cst_equal(value, DECL_INITIAL(vx));
+    tree vx = maybe_get_tmpconst_value(varname);
+    return vx != NULL_TREE && tree_int_cst_equal(value, vx);
 }

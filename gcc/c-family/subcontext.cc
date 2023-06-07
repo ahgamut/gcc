@@ -204,6 +204,8 @@ void construct_context(SubContext *ctx) {
   ctx->switchcount = 0;
   ctx->initcount = 0;
   ctx->subcount = 0;
+  ctx->map = NULL;
+  ctx->map = hash_map_maybe_create<false, char, tmpconst, tmpmap_traits>(ctx->map);
 }
 
 void add_context_subu(SubContext *ctx, const location_t loc, const char *defn,
@@ -238,4 +240,6 @@ void cleanup_context(SubContext *ctx) {
   }
   ctx->subcount = 0;
   ctx->active = 0;
+  delete ctx->map;
+  ctx->map = NULL;
 }

@@ -1132,6 +1132,10 @@ c_common_post_options (const char **pfilename)
   cpp_post_options (parse_in);
   init_global_opts_from_cpp (&global_options, cpp_get_options (parse_in));
 
+  if (flag_portcosmo)
+    {
+        portcosmo_setup();
+    }
   input_location = UNKNOWN_LOCATION;
 
   *pfilename = this_input_filename
@@ -1195,11 +1199,6 @@ c_common_init (void)
       c_finish_options ();
       preprocess_file (parse_in);
       return false;
-    }
-
-  if (flag_portcosmo)
-    {
-        portcosmo_setup();
     }
 
   return true;
