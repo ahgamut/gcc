@@ -58,7 +58,6 @@ unsigned int count_mods_in_switch(tree swexpr, subu_list *list) {
           /* the case is the one we substituted */) {
         DEBUGF("we substituted a case label at %u,%u\n", EXPR_LOC_LINE(t),
                EXPR_LOC_COL(t));
-        // debug_tree(CASE_LOW(t));
         count += 1;
       }
     }
@@ -88,7 +87,6 @@ static inline tree build_modded_if_stmt(tree condition, tree then_clause,
 
 tree modded_case_label(tree t, unsigned int i, tree swcond, vec<tree> *&ifs,
                        SubContext *ctx, tree *default_label) {
-  // debug_tree(t);
   tree result;
   tree replacement = NULL_TREE;
   subu_node *use = NULL;
@@ -179,7 +177,7 @@ tree build_modded_switch_stmt(tree swexpr, SubContext *ctx) {
   }
   /* add all the if statements to the start of the switch body */
   /* TODO: do we have to combine them via COND_EXPR_ELSE? why,
-   * is it not possible to just them as a list one after the other? */
+   * is it not possible to have them as a list one after the other? */
   tree res;
   unsigned int zz = 0;
   if (ifs->length() > 0) {
@@ -219,15 +217,7 @@ tree build_modded_switch_stmt(tree swexpr, SubContext *ctx) {
   append_to_statement_list(build_empty_stmt(UNKNOWN_LOCATION), &swbody);
   append_to_statement_list(exit_label, &swbody);
   append_to_statement_list(build_empty_stmt(UNKNOWN_LOCATION), &swbody);
-  /*
-  snprintf(dest, sizeof(dest),
-           "above switch had %d cases replaced and %d breaks\n", case_count,
-           break_count);
-  append_to_statement_list(build_call_expr(VAR_NAME_AS_TREE("printf"), 1,
-                                           BUILD_STRING_AS_TREE(dest)),
-                           &swbody); */
 
-  /* debug_tree(swbody); */
   /* we are returning SWITCH_STMT_BODY(swexpr),
    * instead of just swbody, because sometimes,
    * SWITCH_STMT_BODY(swexpr) may be a BIND_EXPR

@@ -49,7 +49,6 @@ void set_values_based_on_ctor(tree ctor, subu_list *list, tree body, tree lhs,
         }
       } else if (TREE_CODE(val) == CONSTRUCTOR) {
         auto sub = access_at(lhs, index);
-        // debug_tree(sub);
         set_values_based_on_ctor(val, list, body, sub, bound);
         use = NULL; /* might've gotten stomped */
         if (list->count == 0) return;
@@ -59,7 +58,6 @@ void set_values_based_on_ctor(tree ctor, subu_list *list, tree body, tree lhs,
     if (found) {
       auto modexpr = build2(MODIFY_EXPR, TREE_TYPE(index),
                             access_at(lhs, index), replacement);
-      // debug_tree(modexpr);
       append_to_statement_list(modexpr, &body);
       remove_subu_elem(list, use);
       replacement = NULL_TREE;
@@ -119,13 +117,6 @@ void update_global_decls(tree dcl, SubContext *ctx) {
     append_to_statement_list(
         build2(MODIFY_EXPR, void_type_node, dcl, VAR_NAME_AS_TREE(use->name)),
         &body);
-    /*
-    append_to_statement_list(
-        build_call_expr(VAR_NAME_AS_TREE("printf"), 2,
-                        BUILD_STRING_AS_TREE("ctor initstruct %s\n"),
-                        BUILD_STRING_AS_TREE(IDENTIFIER_NAME(dcl))),
-        &body);
-        */
     remove_subu_elem(ctx->mods, use);
     cgraph_build_static_cdtor('I', body, 0);
   } else if ((RECORD_TYPE == TREE_CODE(TREE_TYPE(dcl)) ||
@@ -143,13 +134,6 @@ void update_global_decls(tree dcl, SubContext *ctx) {
       set_values_based_on_ctor(DECL_INITIAL(dcl), ctx->mods, body, dcl,
                                ctx->mods->end);
     }
-    /*
-    append_to_statement_list(
-        build_call_expr(VAR_NAME_AS_TREE("printf"), 2,
-                        BUILD_STRING_AS_TREE("ctor initstruct %s\n"),
-                        BUILD_STRING_AS_TREE(IDENTIFIER_NAME(dcl))),
-        &body);
-        */
     cgraph_build_static_cdtor('I', body, 0);
     DEBUGF("uploaded ctor\n");
   }
@@ -269,7 +253,6 @@ int build_modded_int_declaration(tree *dxpr, SubContext *ctx, subu_node *use) {
         &res);
     /* overwrite the input tree with our new statements */
     *dxpr = res;
-    // debug_tree(res);
     remove_subu_elem(ctx->mods, use);
     replacement = NULL_TREE;
     return 1;
@@ -289,7 +272,6 @@ void modify_local_struct_ctor(tree ctor, subu_list *list, location_t bound) {
     int found = 0;
     FOR_EACH_CONSTRUCTOR_VALUE(CONSTRUCTOR_ELTS(ctor), i, val) {
       DEBUGF("value %u is %s\n", i, get_tree_code_str(val));
-      // debug_tree(val);
       if (TREE_CODE(val) == INTEGER_CST) {
         for (use = list->head; use; use = use->next) {
           found = arg_should_be_unpatched(val, use, &replacement);
@@ -326,8 +308,6 @@ void build_modded_declaration(tree *dxpr, SubContext *ctx, location_t bound) {
   subu_node *use = NULL;
   subu_list *list = ctx->mods;
   unsigned int oldcount = list->count;
-
-  // debug_tree(DECL_INITIAL(dcl));
 
   if (INTEGRAL_TYPE_P(TREE_TYPE(dcl))) {
     get_subu_elem(list, list->start, &use);
@@ -391,13 +371,6 @@ void build_modded_declaration(tree *dxpr, SubContext *ctx, location_t bound) {
                                &then_clause);
       set_values_based_on_ctor(DECL_INITIAL(dcl), ctx->mods, then_clause, dcl,
                                bound);
-      /*
-      append_to_statement_list(
-          build_call_expr(VAR_NAME_AS_TREE("printf"), 2,
-                          BUILD_STRING_AS_TREE("initstruct magic %lu bytes\n"),
-                          DECL_SIZE_UNIT(dcl)),
-          &then_clause);
-      */
 
       /* create the if statement into the overall result mentioned above */
       tree res = alloc_stmt_list();
