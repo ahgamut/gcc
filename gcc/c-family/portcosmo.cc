@@ -52,7 +52,7 @@ void check_macro_define(cpp_reader *reader, location_t loc,
             z.raw = val2; 
             z.t = build_int_cst(long_long_integer_type_node, val2);
             cosmo_ctx.map->put(name, z);
-            INFORM(loc, "added temporary for %s\n", name);
+            // INFORM(loc, "added temporary for %s\n", name);
         }
     }
     /* not freeing name because it's in the hashmap */
@@ -72,7 +72,7 @@ void portcosmo_setup() {
         if (cbs) {
             if (cbs->define) {
                 other_define = cbs->define;
-                /* TODO: do we need for cbs->under as well? */
+                /* TODO: do we need for cbs->undef as well? */
             }
             cbs->define = check_macro_define;
         }
@@ -108,6 +108,9 @@ tree patch_case_nonconst(location_t loc, tree t) {
                              PORTCOSMO_SWCASE);
         }
     }
+    if (subs == NULL_TREE) {
+        inform(loc, "unable to find __tmpcosmo_ temporary");
+    }
     return subs;
 }
 
@@ -125,7 +128,11 @@ tree patch_init_nonconst(location_t loc, tree t) {
              * the location for rewriting the thing later */
             add_context_subu(&cosmo_ctx, loc, name, strlen(name),
                              PORTCOSMO_INITVAL);
+            DEBUGF("done\n");
         }
+    }
+    if (subs == NULL_TREE) {
+        inform(loc, "unable to find __tmpcosmo_ temporary");
     }
     return subs;
 }
@@ -142,6 +149,12 @@ static tree patch_int_nonconst(location_t loc, tree t, const char **res) {
             if (subs != NULL_TREE) {
                 *res = IDENTIFIER_NAME(t);
                 DEBUGF("substitution exists %s\n", *res);
+            }
+            break;
+        case CONVERT_EXPR:
+            subs = patch_int_nonconst(loc, TREE_OPERAND(t, 0), res);
+            if (subs != NULL_TREE) {
+                subs = build1(CONVERT_EXPR, integer_type_node, subs);
             }
             break;
         case NOP_EXPR:

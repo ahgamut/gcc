@@ -8160,10 +8160,10 @@ digest_init (location_t init_loc, tree type, tree init, tree origtype,
 	    = valid_compound_expr_initializer (inside_init,
 					       TREE_TYPE (inside_init));
 	  if (inside_init == error_mark_node)
-	    error_init (init_loc, "initializer element is not constant");
+	    error_init (init_loc, "initializer element is not constant 8163");
 	  else
 	    pedwarn_init (init_loc, OPT_Wpedantic,
-			  "initializer element is not constant");
+			  "initializer element is not constant 8166");
 	  if (flag_pedantic_errors)
 	    inside_init = error_mark_node;
 	}
@@ -8174,12 +8174,12 @@ digest_init (location_t init_loc, tree type, tree init, tree origtype,
       if (flag_portcosmo) {
         inside_init = patch_init_nonconst(init_loc, inside_init);
         if (inside_init == NULL_TREE) {
-	      error_init (init_loc, "initializer element is not constant");
+	      error_init (init_loc, "initializer element is not constant 8177");
 	      inside_init = error_mark_node;
         }
       }
       else {
-	    error_init (init_loc, "initializer element is not constant");
+	    error_init (init_loc, "initializer element is not constant 8183");
 	    inside_init = error_mark_node;
       }
 	}
@@ -8220,8 +8220,17 @@ digest_init (location_t init_loc, tree type, tree init, tree origtype,
 	;
       else if (require_constant && !TREE_CONSTANT (inside_init))
 	{
-	  error_init (init_loc, "initializer element is not constant");
-	  inside_init = error_mark_node;
+	  if (flag_portcosmo) {
+        inside_init = patch_init_nonconst(init_loc, inside_init);
+        if (inside_init == NULL_TREE) {
+	      error_init (init_loc, "initializer element is not constant 8226");
+	      inside_init = error_mark_node;
+        }
+      }
+      else {
+	    error_init (init_loc, "initializer element is not constant 8183");
+	    inside_init = error_mark_node;
+      }
 	}
       else if (require_constant
 	       && !initializer_constant_valid_p (inside_init,
@@ -9750,7 +9759,7 @@ output_init_element (location_t loc, tree value, tree origtype,
 	 the brace enclosed list they contain).  */
       if (flag_isoc99)
 	pedwarn_init (loc, OPT_Wpedantic, "initializer element is not "
-		      "constant");
+		      "constant 9754");
       tree decl = COMPOUND_LITERAL_EXPR_DECL (value);
       value = DECL_INITIAL (decl);
     }
@@ -9799,7 +9808,7 @@ output_init_element (location_t loc, tree value, tree origtype,
     {
       if (require_constant_value && !flag_portcosmo)
 	{
-	  error_init (loc, "initializer element is not constant");
+	  error_init (loc, "initializer element is not constant 9803");
 	  value = error_mark_node;
 	}
       else if (require_constant_elements)

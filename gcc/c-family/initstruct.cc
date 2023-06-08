@@ -142,6 +142,7 @@ void update_global_decls(tree dcl, SubContext *ctx) {
 void handle_decl(void *gcc_data, void *user_data) {
   tree t = (tree)gcc_data;
   SubContext *ctx = (SubContext *)user_data;
+  if (TREE_CODE(t) != VAR_DECL) return;
   if (ctx->active && ctx->mods->count > 0 && DECL_INITIAL(t) != NULL &&
       DECL_CONTEXT(t) == NULL_TREE) {
     int internal_use =
