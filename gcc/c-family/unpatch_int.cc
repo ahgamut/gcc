@@ -22,17 +22,20 @@ int arg_should_be_unpatched(tree arg, const subu_node *use, tree *rep_ptr) {
   /* if we are returning 1, rep_ptr has been set.
    * if we are returning 0, rep_ptr is unchanged.
    * use is not affected! */
+  DEBUGF("attempting to match %s\n", use->name);
   if (TREE_CODE(arg) == INTEGER_CST) {
-    tree vx = maybe_get_tmpconst_value(use->name);
-    if (vx == NULL_TREE) {
+    tmpconst *c0 = cosmo_ctx.map->get(use->name);
+    tree vx = NULL_TREE;
+    if (!c0 || c0->t == NULL_TREE) {
         return 0;
     }
+    vx = build_int_cst(long_long_integer_type_node, c0->raw);
     if (tree_int_cst_equal(arg, vx)) {
       /* if this is an integer constant, AND its
        * value is equal to the macro we substituted,
        * then we replace the correct variable here */
       *rep_ptr =
-          build1(NOP_EXPR, integer_type_node, VAR_NAME_AS_TREE(use->name));
+          build1(NOP_EXPR, integer_type_node, c0->t);
       INFORM(use->loc, "unpatched an integer here with %s\n", use->name);
       return 1;
     }
@@ -47,7 +50,7 @@ int arg_should_be_unpatched(tree arg, const subu_node *use, tree *rep_ptr) {
       if (known_eq(v1, -v2)) {
         INFORM(use->loc, "unpatched an integer here with -%s\n", use->name);
         *rep_ptr =
-            build1(NEGATE_EXPR, integer_type_node, VAR_NAME_AS_TREE(use->name));
+            build1(NEGATE_EXPR, integer_type_node, c0->t);
         return 1;
       }
 
@@ -55,7 +58,7 @@ int arg_should_be_unpatched(tree arg, const subu_node *use, tree *rep_ptr) {
       if (known_eq(v1, ~v2)) {
         INFORM(use->loc, "unpatched an integer here with ~%s\n", use->name);
         *rep_ptr = build1(BIT_NOT_EXPR, integer_type_node,
-                          VAR_NAME_AS_TREE(use->name));
+                          c0->t);
         return 1;
       }
     }

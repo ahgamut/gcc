@@ -16,66 +16,24 @@
 │ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR             │
 │ PERFORMANCE OF THIS SOFTWARE.                                                │
 ╚─────────────────────────────────────────────────────────────────────────────*/
-#include "c-family/portcosmo.internal.h"
-#include "c-family/subcontext.h"
 #include "c-family/ifswitch.h"
 #include "c-family/initstruct.h"
+#include "c-family/portcosmo.internal.h"
+#include "c-family/subcontext.h"
 
 static tree patch_int_nonconst(location_t, tree, const char **);
+tmpconst *insert_tmpconst_pair(const char *s, tree, const char **);
+tree insert_tmpconst_value(const char *s, tree);
 
 struct SubContext cosmo_ctx;
 static int ctx_inited = 0;
-static void (*other_define) (cpp_reader *, location_t, cpp_hashnode *) = NULL;
-
-void check_macro_define(cpp_reader *reader, location_t loc,
-                        cpp_hashnode *node) {
-  const char *defn = (const char *)cpp_macro_definition(reader, node);
-  if (cosmo_ctx.active && strstr(defn, "__tmpcosmo_") == defn)
-  {
-    const char *arg_start = defn + strlen("__tmpcosmo_");
-    const char *arg_end = strstr(arg_start, " ");
-    if (!arg_start || !arg_end || arg_end - arg_start < 1) return;
-    char* name = xstrndup(arg_start, arg_end - arg_start);
-    char* val = xstrdup(arg_end);
-    long long val2 = strtoll(arg_end, NULL, 0);
-    if (val2 == 0) {
-        cpp_error_at(parse_in, CPP_DL_ERROR, loc,
-                "cannot parse portcosmo temporary constant\n");
-        cosmo_ctx.active = 0;
-    } else {
-        if (cosmo_ctx.map->get(name)) {
-            cpp_error_at(parse_in, CPP_DL_ERROR, loc,
-                    "duplicate portcosmo temporary constant\n");
-            cosmo_ctx.active = 0;
-        } else {
-            tmpconst z;
-            z.raw = val2; 
-            z.t = build_int_cst(long_long_integer_type_node, val2);
-            cosmo_ctx.map->put(name, z);
-            // INFORM(loc, "added temporary for %s\n", name);
-        }
-    }
-    /* not freeing name because it's in the hashmap */
-    free(val);
-  }
-  else if(other_define) {
-     DEBUGF("we should just let this be %s\n", defn);
-     other_define(reader, loc, node);
-  }
-}
+static long PATCH_START = 15840000;
+static long PATCH_INDEX = 0;
 
 void portcosmo_setup() {
-    cpp_callbacks *cbs = cpp_get_callbacks(parse_in);
     if (flag_portcosmo && 0 == ctx_inited) {
         construct_context(&cosmo_ctx);
         ctx_inited = 1;
-        if (cbs) {
-            if (cbs->define) {
-                other_define = cbs->define;
-                /* TODO: do we need for cbs->undef as well? */
-            }
-            cbs->define = check_macro_define;
-        }
     }
 }
 
@@ -106,6 +64,7 @@ tree patch_case_nonconst(location_t loc, tree t) {
              * the location for rewriting the thing later */
             add_context_subu(&cosmo_ctx, loc, name, strlen(name),
                              PORTCOSMO_SWCASE);
+            DEBUGF("done %s\n", name);
         }
     }
     if (subs == NULL_TREE) {
@@ -128,7 +87,7 @@ tree patch_init_nonconst(location_t loc, tree t) {
              * the location for rewriting the thing later */
             add_context_subu(&cosmo_ctx, loc, name, strlen(name),
                              PORTCOSMO_INITVAL);
-            DEBUGF("done\n");
+            DEBUGF("done %s\n", name);
         }
     }
     if (subs == NULL_TREE) {
@@ -145,7 +104,7 @@ static tree patch_int_nonconst(location_t loc, tree t, const char **res) {
     tree subs = NULL_TREE;
     switch (TREE_CODE(t)) {
         case VAR_DECL:
-            subs = maybe_get_tmpconst_value(IDENTIFIER_NAME(t));
+            subs = insert_tmpconst_value(IDENTIFIER_NAME(t), t);
             if (subs != NULL_TREE) {
                 *res = IDENTIFIER_NAME(t);
                 DEBUGF("substitution exists %s\n", *res);
@@ -176,7 +135,8 @@ static tree patch_int_nonconst(location_t loc, tree t, const char **res) {
             }
             break;
         default:
-            subs = NULL_TREE;
+            tmpconst *s2 = insert_tmpconst_pair(NULL, t, res);
+            subs = s2 ? build_int_cst(long_long_integer_type_node, s2->raw) : NULL_TREE;
     }
     return subs;
 }
@@ -195,11 +155,64 @@ const char *get_tree_code_str(tree expr) {
 #undef END_OF_BASE_TREE_CODES
 }
 
+tree insert_tmpconst_value(const char *s, tree later) {
+    tmpconst *z = insert_tmpconst_pair(s, later, NULL);
+    if (!z || z->t == NULL_TREE) return NULL_TREE;
+    if (TREE_CODE(z->t) == VAR_DECL) {
+        if (s && TREE_CODE(later) == VAR_DECL &&
+            strcmp(IDENTIFIER_NAME(z->t), s) == 0) {
+            DEBUGF("returning existing entry for VAR_DECL %s\n", s);
+            return build_int_cst(long_long_integer_type_node, z->raw);
+        } else {
+            return NULL_TREE;
+        }
+    } else {
+        DEBUGF("returning existing entry for unknown expression\n", s);
+        return build_int_cst(long_long_integer_type_node, z->raw);
+    }
+}
+
+tmpconst *insert_tmpconst_pair(const char *s, tree later, const char **newname) {
+    if (PATCH_INDEX >= MAXIMUM_PATCHES) {
+        error_at(UNKNOWN_LOCATION,
+                 "sorry, too many unknown constants to keep track\n");
+        cosmo_ctx.active = 0;
+        return NULL;
+    }
+    char *key = NULL;
+    tmpconst *z = NULL;
+    tmpconst value;
+
+    if (s) {
+        key = xstrdup(s);
+        if (newname) *newname = s;
+    } else {
+        const int maxlen = strlen("__tmpcalc_1234678900 ");
+        key = (char*)xmalloc((sizeof(char)) * maxlen);
+        snprintf(key, maxlen, "__tmpcalc_%ld", PATCH_INDEX);
+        if (newname) *newname = key;
+    }
+
+    z = cosmo_ctx.map->get(key);
+    if (!z) {
+        value.raw = PATCH_START + PATCH_INDEX;
+        value.t = later;
+        cosmo_ctx.map->put(key, value);
+        DEBUGF("creating new entry for %s\n", key);
+        PATCH_INDEX += 4;
+        /* not freeing key because it's in the hashmap */
+        return cosmo_ctx.map->get(key);
+    } else {
+        free(key);
+        return z;
+    }
+}
+
 tree maybe_get_tmpconst_value(const char *s) {
     char *result = xstrdup(s);
     tmpconst *z = cosmo_ctx.map->get(result);
     free(result);
-    return z ? z->t : NULL_TREE;
+    return z ? build_int_cst(long_long_integer_type_node, z->raw) : NULL_TREE;
 }
 
 int check_magic_equal(tree value, char *varname) {
