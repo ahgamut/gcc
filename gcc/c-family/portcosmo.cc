@@ -29,11 +29,63 @@ struct SubContext cosmo_ctx;
 static int ctx_inited = 0;
 static long PATCH_START = 15840000;
 static long PATCH_INDEX = 0;
+static void (*other_define) (cpp_reader *, location_t, cpp_hashnode *) = NULL;
+
+void check_macro_define(cpp_reader *reader, location_t loc,
+                        cpp_hashnode *node) {
+  const char *defn = (const char *)cpp_macro_definition(reader, node);
+  if (cosmo_ctx.active && strstr(defn, "__tmpcosmo_") == defn)
+  {
+    const char *arg_start = defn + strlen("__tmpcosmo_");
+    const char *arg_end = strstr(arg_start, " ");
+    if (!arg_start || !arg_end || arg_end - arg_start < 1) return;
+    char* name = xstrndup(arg_start, arg_end - arg_start);
+    char* val = xstrdup(arg_end);
+    long long val2 = strtoll(arg_end, NULL, 0);
+    if (val2 == 0) {
+        cpp_error_at(parse_in, CPP_DL_ERROR, loc,
+                "cannot parse portcosmo temporary constant\n");
+        cosmo_ctx.active = 0;
+    } else {
+        if (cosmo_ctx.map->get(name)) {
+            cpp_error_at(parse_in, CPP_DL_ERROR, loc,
+                    "duplicate portcosmo temporary constant\n");
+            cosmo_ctx.active = 0;
+        } else {
+            tmpconst z;
+            z.raw = val2; 
+            z.t = NULL_TREE;
+            if (maybe_get_identifier(name)) {
+                z.t = VAR_NAME_AS_TREE(name);
+            } else {
+                cpp_error_at(parse_in, CPP_DL_ERROR, loc,
+                    "cannot find %s, is __tmpcosmo_%s before the declaration of %s?\n",
+                    name, name, name);
+            }
+            cosmo_ctx.map->put(name, z);
+        }
+    }
+    /* not freeing name because it's in the hashmap */
+    free(val);
+  }
+  else if(other_define) {
+     // DEBUGF("we should just let this be %s\n", defn);
+     other_define(reader, loc, node);
+  }
+}
 
 void portcosmo_setup() {
+    cpp_callbacks *cbs = cpp_get_callbacks(parse_in);
     if (flag_portcosmo && 0 == ctx_inited) {
         construct_context(&cosmo_ctx);
         ctx_inited = 1;
+        if (cbs) {
+            if (cbs->define) {
+                other_define = cbs->define;
+                /* TODO: do we need for cbs->undef as well? */
+            }
+            cbs->define = check_macro_define;
+        }
     }
 }
 
@@ -137,6 +189,7 @@ static tree patch_int_nonconst(location_t loc, tree t, const char **res) {
         default:
             tmpconst *s2 = insert_tmpconst_pair(NULL, t, res);
             subs = s2 ? build_int_cst(long_long_integer_type_node, s2->raw) : NULL_TREE;
+            warning_at(loc, 0, "attempting to patch an arbitrary expression\n");
     }
     return subs;
 }
@@ -157,11 +210,17 @@ const char *get_tree_code_str(tree expr) {
 
 tree insert_tmpconst_value(const char *s, tree later) {
     tmpconst *z = insert_tmpconst_pair(s, later, NULL);
-    if (!z || z->t == NULL_TREE) return NULL_TREE;
+    if (!z) return NULL_TREE;
+    if (z->t == NULL_TREE) {
+        z->t = later;
+        DEBUGF("found temporary without a tree %s %d\n", s, z->raw);
+        return build_int_cst(long_long_integer_type_node, z->raw);
+    }
     if (TREE_CODE(z->t) == VAR_DECL) {
         if (s && TREE_CODE(later) == VAR_DECL &&
             strcmp(IDENTIFIER_NAME(z->t), s) == 0) {
             DEBUGF("returning existing entry for VAR_DECL %s\n", s);
+            /* TODO: maybe use DECL_SIZE here to handle shorts */
             return build_int_cst(long_long_integer_type_node, z->raw);
         } else {
             return NULL_TREE;
