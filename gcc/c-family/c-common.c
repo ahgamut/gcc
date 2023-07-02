@@ -2114,7 +2114,7 @@ check_case_value (location_t loc, tree value)
   else if (value != error_mark_node)
     {
       if (flag_portcosmo) {
-          value = patch_case_nonconst(loc, value);
+          value = portcosmo_patch_nonconst(loc, value);
           if (value == NULL_TREE) {
             error_at (loc, "case label does not reduce to an integer constant");
             value = error_mark_node;

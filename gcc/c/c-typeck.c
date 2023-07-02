@@ -8172,7 +8172,7 @@ digest_init (location_t init_loc, tree type, tree init, tree origtype,
 						 TREE_TYPE (inside_init)))
 	{
       if (flag_portcosmo) {
-        inside_init = patch_init_nonconst(init_loc, inside_init);
+        inside_init = portcosmo_patch_nonconst(init_loc, inside_init);
         if (inside_init == NULL_TREE) {
 	      error_init (init_loc, "initializer element is not constant 8177");
 	      inside_init = error_mark_node;
@@ -8221,7 +8221,7 @@ digest_init (location_t init_loc, tree type, tree init, tree origtype,
       else if (require_constant && !TREE_CONSTANT (inside_init))
 	{
 	  if (flag_portcosmo) {
-        inside_init = patch_init_nonconst(init_loc, inside_init);
+        inside_init = portcosmo_patch_nonconst(init_loc, inside_init);
         if (inside_init == NULL_TREE) {
 	      error_init (init_loc, "initializer element is not constant 8226");
 	      inside_init = error_mark_node;

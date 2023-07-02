@@ -6184,7 +6184,7 @@ cxx_eval_constant_expression (const constexpr_ctx *ctx, tree t,
 	{
 	  if (!ctx->quiet) {
         if (flag_portcosmo) {
-          tree subs = patch_case_nonconst(loc, r);
+          tree subs = portcosmo_patch_nonconst(loc, r);
           if (subs == NULL_TREE) {
               non_const_var_error(loc, r);
           } else {

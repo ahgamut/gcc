@@ -102,7 +102,7 @@ void portcosmo_show_tree(location_t loc, tree t) {
     debug_tree(t);
 }
 
-tree patch_case_nonconst(location_t loc, tree t) {
+tree portcosmo_patch_nonconst(location_t loc, tree t) {
     INFORM(loc, "attempting case substitution at: line %u, col %u\n",
            LOCATION_LINE(loc), LOCATION_COLUMN(loc));
     tree subs = NULL_TREE;
@@ -114,31 +114,7 @@ tree patch_case_nonconst(location_t loc, tree t) {
             subs = c_fully_fold(subs, false, NULL, false);
             /* this substitution was successful, so record
              * the location for rewriting the thing later */
-            add_context_subu(&cosmo_ctx, loc, name, strlen(name),
-                             PORTCOSMO_SWCASE);
-            DEBUGF("done %s\n", name);
-        }
-    }
-    if (subs == NULL_TREE) {
-        inform(loc, "unable to find __tmpcosmo_ temporary");
-    }
-    return subs;
-}
-
-tree patch_init_nonconst(location_t loc, tree t) {
-    INFORM(loc, "attempting init substitution at: line %u, col %u\n",
-           LOCATION_LINE(loc), LOCATION_COLUMN(loc));
-    tree subs = NULL_TREE;
-    const char *name = NULL;
-    if (cosmo_ctx.active) {
-        subs = patch_int_nonconst(loc, t, &name);
-        if (subs != NULL_TREE) {
-            DEBUGF("folding...\n");
-            subs = c_fully_fold(subs, false, NULL, false);
-            /* this substitution was successful, so record
-             * the location for rewriting the thing later */
-            add_context_subu(&cosmo_ctx, loc, name, strlen(name),
-                             PORTCOSMO_INITVAL);
+            add_context_subu(&cosmo_ctx, loc, name, strlen(name));
             DEBUGF("done %s\n", name);
         }
     }

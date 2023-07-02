@@ -19,13 +19,12 @@
 #include "c-family/subcontext.h"
 
 subu_node *build_subu(const location_t loc, const char *name,
-                      unsigned int namelen, SubstType tp) {
+                      unsigned int namelen) {
   /* xmalloc because malloc is poisoned by gcc-plugin's system.h */
   subu_node *res = (subu_node *)xmalloc(sizeof(subu_node));
   res->next = NULL;
   res->loc = loc;
   res->name = xstrndup(name, namelen);
-  res->tp = tp;
   DEBUGF("allocated subu_node at %p\n", res);
   return res;
 };
@@ -36,7 +35,6 @@ void delete_subu(subu_node *node) {
   node->loc = 0x0;
   free(node->name);
   node->next = NULL;
-  node->tp = PORTCOSMO_UNKNOWN;
   free(node);
 }
 
@@ -209,9 +207,9 @@ void construct_context(SubContext *ctx) {
 }
 
 void add_context_subu(SubContext *ctx, const location_t loc, const char *defn,
-                      unsigned int at, SubstType st) {
+                      unsigned int at) {
   if (ctx->mods == NULL) return;
-  add_subu_elem(ctx->mods, build_subu(loc, defn, at, st));
+  add_subu_elem(ctx->mods, build_subu(loc, defn, at));
 }
 
 void check_context_clear(SubContext *ctx, location_t start) {
