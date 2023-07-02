@@ -3,11 +3,10 @@
 This 2kLOC `gcc` patch simplifies the compilation of C software with
 [Cosmopolitan Libc][cosmo], specifically solving the issues related to system
 constants (it avoids the `switch case is not constant` and `initializer element
-is not constant` errors by rewriting the AST at the necessary locations).
-
-The code is based on [my experimental GCC plugin][plugin], with simplications
-and extra features from being able to patch gcc itself. All my code in this
-patch is under the [ISC License][isc].
+is not constant` errors by rewriting the AST at the necessary locations). The
+code is based on [my experimental GCC plugin][plugin], with simplifications and
+extra features from being able to patch gcc itself. All my code in this patch is
+under the [ISC License][isc].
 
 ## How to use this feature?
 
@@ -21,10 +20,9 @@ First, you would need to obtain a patched `gcc` built with this patch included:
   along with the [`cosmocc` wrapper script][cosmocc].
 
 Once you have built `gcc` with this patch, just pass `-fportcosmo` as a compiler
-flag when building your C software. **For advanced users**: if you'd prefer to
-use specific temporary integer values to be used during the AST patching
-process, you can `#define` them with the `__tmpcosmo_` prefix, like `#define
-__tmpcosmo_SIGILL 15782233`.
+flag when building your C software. If you'd prefer specific temporary integer
+values to be used during the AST patching process, you can `#define` them with
+the `__tmpcosmo_` prefix, like `#define __tmpcosmo_SIGILL 15782233`.
 
 ## How does it work?
 
@@ -36,7 +34,8 @@ __tmpcosmo_SIGILL 15782233`.
   compile-time constant, which it isn't
 * this patch activates and avoids the "error" by providing a temporary `int32_t`
   constant to the AST, which you can provide via a `#define __tmpcosmo_SIGILL`
-  in your code, or let the patch choose it automatically
+  in your code, or let the patch choose it automatically with values starting
+  from 15840000
 * after the complete AST has been constructed, this patch walks through the AST
   rewriting subtrees wherever the patch was activated earlier: `switch`
   statements are rewritten into `if-else` statements (with appropriate `goto`s
@@ -45,13 +44,16 @@ __tmpcosmo_SIGILL 15782233`.
   globals or an `if` for locals). No other part of the code being compiled is
   affected.
 
-For an extended explanation, refer to the three READMEs [with my plugin][plugin].
+For an extended explanation, refer to the three READMEs [with my
+plugin][plugin].  Note that this patch currently does not work with: 
 
-Note that this patch currently does not work with: `g++` (due to `constexpr`
-interference), `enum`s (rewrite to `#define`s instead), or wacky situtations
-where `SIGILL` is used as an array index within an initializer (hello pls
-`busybox` why). Finally, remember this patch is just a convenience -- you could
-always rewrite the `switch` statements and `struct initializers` manually.
+* `g++` (due to `constexpr` interference, but now most switch cases would work)
+* `enum`s (rewrite to `#define`s instead), or 
+* wacky situtations where `SIGILL` is used as an array index within an
+  initializer (hello pls `busybox` why). 
+
+Finally, remember this patch is just a convenience -- you could always rewrite
+the `switch` statements and `struct` initializers manually.
 
 [cosmo]: https://github.com/jart/cosmopolitan
 [isc]: https://www.gnu.org/licenses/license-list.html#ISC

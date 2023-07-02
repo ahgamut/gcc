@@ -236,12 +236,6 @@ int build_modded_int_declaration(tree *dxpr, SubContext *ctx, subu_node *use) {
     append_to_statement_list(
         build2(MODIFY_EXPR, void_type_node, dcl, replacement),
         &then_clause);
-    /*
-    append_to_statement_list(
-        build_call_expr(VAR_NAME_AS_TREE("printf"), 1,
-                        BUILD_STRING_AS_TREE("initstruct magic\n")),
-        &then_clause);
-    */
 
     /* create the if statement into the overall result mentioned above */
     tree res = alloc_stmt_list();
@@ -291,9 +285,7 @@ void modify_local_struct_ctor(tree ctor, subu_list *list, location_t bound) {
     }
     if (found) {
       DEBUGF("found\n");
-      // debug_tree(CONSTRUCTOR_ELT(ctor, i)->index);
       CONSTRUCTOR_ELT(ctor, i)->value = replacement;
-      // debug_tree(CONSTRUCTOR_ELT(ctor, i)->value);
       remove_subu_elem(list, use);
       replacement = NULL_TREE;
     } else {

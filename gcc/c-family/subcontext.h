@@ -6,22 +6,6 @@
 #include "hash-traits.h"
 
 struct subu_node {
-    /* a node indicating that an ifswitch substitution has occurred.
-     *
-     * Details include:
-     *
-     * - location_t of the substitution
-     * - char* of name of the macro that was substituted (alloc'd)
-     * - _subu_node* pointer to the next element in the list (NULL if last)
-     *
-     * the idea is that every time one of our modified macros is used,
-     * we record the substitution, and then we delete this record if
-     * we find the appropriate location_t during pre-genericize and
-     * construct the necessary parse trees at that point.
-     *
-     * at the end of compilation (ie PLUGIN_FINISH), there should be
-     * no subu_nodes allocated.
-     */
     location_t loc;
     char *name;
     struct subu_node *next;
@@ -82,7 +66,6 @@ void add_context_subu(SubContext *, const location_t, const char *,
 void construct_context(SubContext *);
 void check_context_clear(SubContext *, location_t);
 void cleanup_context(SubContext *);
-
 int arg_should_be_unpatched(tree, const subu_node *, tree *);
 
 /* declaring cosmo_ctx here so initstruct knows it exists */
