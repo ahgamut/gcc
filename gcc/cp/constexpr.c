@@ -36,6 +36,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "fold-const-call.h"
 #include "stor-layout.h"
 #include "cgraph.h"
+#include "c-family/portcosmo.h"
 
 static bool verify_constant (tree, bool, bool *, bool *);
 #define VERIFY_CONSTANT(X)						\
@@ -6181,8 +6182,18 @@ cxx_eval_constant_expression (const constexpr_ctx *ctx, tree t,
 	r = TARGET_EXPR_INITIAL (r);
       if (DECL_P (r))
 	{
-	  if (!ctx->quiet)
-	    non_const_var_error (loc, r);
+	  if (!ctx->quiet) {
+        if (flag_portcosmo) {
+          tree subs = patch_case_nonconst(loc, r);
+          if (subs == NULL_TREE) {
+              non_const_var_error(loc, r);
+          } else {
+              return subs;
+          }
+        } else {
+	      non_const_var_error (loc, r);
+        }
+      }
 	  *non_constant_p = true;
 	}
       break;

@@ -97,7 +97,7 @@ void portcosmo_teardown() {
 }
 
 void portcosmo_show_tree(location_t loc, tree t) {
-    INFORM(loc, "attempting case substitution at: line %u, col %u\n",
+    INFORM(loc, "attempting substitution at: line %u, col %u\n",
            LOCATION_LINE(loc), LOCATION_COLUMN(loc));
     debug_tree(t);
 }
