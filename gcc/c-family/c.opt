@@ -612,7 +612,7 @@ C ObjC C++ ObjC++ Var(warn_float_equal) Warning
 Warn if testing floating point numbers for equality.
 
 Wformat
-C ObjC C++ ObjC++ Warning Alias(Wformat=, 1, 0)
+C ObjC C++ ObjC++ Warning Alias(Wformat=, 1, 0) Init(0)
 Warn about printf/scanf/strftime/strfmon format string anomalies.
 
 Wformat-contains-nul
@@ -620,7 +620,7 @@ C ObjC C++ ObjC++ Var(warn_format_contains_nul) Warning LangEnabledBy(C ObjC C++
 Warn about format strings that contain NUL bytes.
 
 Wformat-diag
-C ObjC C++ ObjC++ Var(warn_format_diag) Warning LangEnabledBy(C ObjC C++ ObjC++,Wformat=, warn_format >= 1, 0)
+C ObjC C++ ObjC++ Var(warn_format_diag) Warning LangEnabledBy(ObjC ObjC++,Wformat=, warn_format >= 1, 0)
 Warn about GCC format strings with strings unsuitable for diagnostics.
 
 Wformat-extra-args
