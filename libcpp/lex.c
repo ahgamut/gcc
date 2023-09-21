@@ -23,6 +23,7 @@ along with this program; see the file COPYING3.  If not see
 #include "system.h"
 #include "cpplib.h"
 #include "internal.h"
+#undef __ARM_NEON
 
 enum spell_type
 {
