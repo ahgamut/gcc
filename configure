@@ -7827,6 +7827,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 $as_echo_n "checking for the correct version of mpc.h... " >&6; }
     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
+#include <stdio.h>
 #include <mpc.h>
 int
 main ()
@@ -7843,6 +7844,7 @@ _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
+#include <stdio.h>
 #include <mpc.h>
 int
 main ()
@@ -7879,6 +7881,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 $as_echo_n "checking for the correct version of the gmp/mpfr/mpc libraries... " >&6; }
     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
+#include <stdio.h>
 #include <mpc.h>
 int
 main ()
