@@ -7775,6 +7775,7 @@ $as_echo_n "checking for the correct version of mpfr.h... " >&6; }
     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <gmp.h>
+#include <stdio.h>
     #include <mpfr.h>
 int
 main ()
@@ -7792,6 +7793,7 @@ if ac_fn_c_try_compile "$LINENO"; then :
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <gmp.h>
+#include <stdio.h>
     #include <mpfr.h>
 int
 main ()
