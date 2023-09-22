@@ -2552,7 +2552,7 @@ cfn-operators.pd: s-cfn-operators; @true
 
 target-hooks-def.h: s-target-hooks-def-h; @true
 # make sure that when we build info files, the used tm.texi is up to date.
-$(srcdir)/doc/tm.texi: s-tm-texi; @true
+$(srcdir)/doc/tm.texi: 
 
 s-target-hooks-def-h: build/genhooks$(build_exeext)
 	$(RUN_GEN) build/genhooks$(build_exeext) "Target Hook" \
