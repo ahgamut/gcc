@@ -135,88 +135,107 @@ tree modded_case_label(tree t, unsigned int i, tree swcond, vec<tree> *&ifs,
   return result;
 }
 
-tree build_modded_switch_stmt(tree swexpr, SubContext *ctx) {
-  int case_count = 0, break_count = 0;
-  int has_default = 0;
+struct swmod_ctx {
+    int case_count, break_count, has_default;
+    tree swcond, swbody;
+    tree exit_label;
+    tree default_label;
+    vec<tree> *ifs;
+    SubContext *ctx;
+};
 
-  tree swcond = save_expr(SWITCH_STMT_COND(swexpr));
-  tree swbody = get_switch_body(swexpr);
+tree check_switch_internals(tree *tp, int *check_subtree, void *data) {
+  struct swmod_ctx *swt = (struct swmod_ctx *)data;
+ 
+  switch(TREE_CODE(*tp)) {
+      case CASE_LABEL_EXPR:
+        swt->case_count += 1;
+        swt->has_default = swt->has_default || (CASE_LOW(*tp) == NULL_TREE);
+        /* replace the case statement with a goto */
+        *tp = modded_case_label(*tp, swt->case_count, swt->swcond,
+                    swt->ifs, swt->ctx, &(swt->default_label));
+        break;
+      case BREAK_STMT:
+        swt->break_count += 1;
+        /* replace the break statement with a goto to the end */
+        *tp = build1(GOTO_EXPR, void_type_node, LABEL_EXPR_LABEL(swt->exit_label));
+        break;
+      case BIND_EXPR:
+      case STATEMENT_LIST:
+      case COND_EXPR:
+        /* we want to check the subtrees, because 
+         * they may contain break statements */
+        break;
+      default:
+        *check_subtree = 0;
+  }
+
+  return NULL_TREE;
+}
+
+tree build_modded_switch_stmt(tree swexpr, SubContext *ctx) {
+  struct swmod_ctx mod;
   tree *tp = NULL;
   char dest[STRING_BUFFER_SIZE] = {0};
 
-  vec<tree> *ifs;
-  vec_alloc(ifs, 0);
+  mod.case_count = 0;
+  mod.break_count = 0;
+  mod.has_default = 0;
+  mod.swcond = save_expr(SWITCH_STMT_COND(swexpr));
+  mod.swbody = get_switch_body(swexpr);
+  vec_alloc(mod.ifs, 0);
+  mod.exit_label = build_modded_exit_label(ctx->switchcount);
+  mod.default_label = NULL_TREE;
+  mod.ctx = ctx;
 
-  tree exit_label = build_modded_exit_label(ctx->switchcount);
-  tree default_label = NULL_TREE;
+  /* TODO: maybe this should be split into two functions,
+   * one looping over and fixing the case labels, and the
+   * other walking through the tree searching for breaks.
+   */
+  walk_tree_without_duplicates(&(mod.swbody), check_switch_internals, &mod);
 
-  for (auto it = tsi_start(swbody); !tsi_end_p(it); tsi_next(&it)) {
-    tp = tsi_stmt_ptr(it);
-    if (TREE_CODE(*tp) == CASE_LABEL_EXPR) {
-      case_count += 1;
-      has_default = has_default || (CASE_LOW(*tp) == NULL_TREE);
-      /* replace the case statement with a goto */
-      *tp =
-          modded_case_label(*tp, case_count, swcond, ifs, ctx, &default_label);
-    } else if (TREE_CODE(*tp) == BREAK_STMT) {
-      break_count += 1;
-      /* replace the break statement with a goto to the end */
-      *tp = build1(GOTO_EXPR, void_type_node, LABEL_EXPR_LABEL(exit_label));
-    } else if (TREE_CODE(*tp) == BIND_EXPR) {
-      for (auto it2 = tsi_start(BIND_EXPR_BODY(*tp)); !tsi_end_p(it2);
-           tsi_next(&it2)) {
-        auto tp2 = tsi_stmt_ptr(it2);
-        if (TREE_CODE(*tp2) == BREAK_STMT) {
-          break_count += 1;
-          /* replace the break statement with a goto to the end */
-          *tp2 =
-              build1(GOTO_EXPR, void_type_node, LABEL_EXPR_LABEL(exit_label));
-        }
-      }
-    }
-  }
   /* add all the if statements to the start of the switch body */
   /* TODO: do we have to combine them via COND_EXPR_ELSE? why,
    * is it not possible to have them as a list one after the other? */
   tree res;
   unsigned int zz = 0;
-  if (ifs->length() > 0) {
-    res = (*ifs)[0];
-    for (zz = 1; zz < ifs->length(); ++zz) {
-      COND_EXPR_ELSE(res) = (*ifs)[zz];
-      res = (*ifs)[zz];
+  if (mod.ifs->length() > 0) {
+    res = (*(mod.ifs))[0];
+    for (zz = 1; zz < mod.ifs->length(); ++zz) {
+      COND_EXPR_ELSE(res) = (*(mod.ifs))[zz];
+      res = (*(mod.ifs))[zz];
     }
     /* if we have a valid default for the switch,
      * it should be the final else branch */
-    if (default_label && default_label != NULL_TREE) {
+    if (mod.default_label && mod.default_label != NULL_TREE) {
       COND_EXPR_ELSE(res) =
-          build1(GOTO_EXPR, void_type_node, LABEL_EXPR_LABEL(default_label));
+          build1(GOTO_EXPR, void_type_node, LABEL_EXPR_LABEL(mod.default_label));
     } else {
       /* if we don't have a default, then the final else branch
        * should just jump to after the switch */
-        COND_EXPR_ELSE(res) =
-              build1(GOTO_EXPR, void_type_node, LABEL_EXPR_LABEL(exit_label));
+      COND_EXPR_ELSE(res) =
+          build1(GOTO_EXPR, void_type_node, LABEL_EXPR_LABEL(mod.exit_label));
     }
     /* reset to the start of the if-else tree */
-    res = (*ifs)[0];
-  } else if (has_default && default_label != NULL_TREE) {
+    res = (*(mod.ifs))[0];
+  } else if (mod.has_default && mod.default_label != NULL_TREE) {
     /* this switch has only a default? ok... */
-    res = build1(GOTO_EXPR, void_type_node, LABEL_EXPR_LABEL(default_label));
+    res = build1(GOTO_EXPR, void_type_node, LABEL_EXPR_LABEL(mod.default_label));
   } else {
     /* this switch has no cases, and no default?! */
-    warning_at(EXPR_LOCATION(swcond), 0, "switch without cases or default?");
-    res = build1(GOTO_EXPR, void_type_node, LABEL_EXPR_LABEL(exit_label));
+    warning_at(EXPR_LOCATION(mod.swcond), 0, "switch without cases or default?");
+    res = build1(GOTO_EXPR, void_type_node, LABEL_EXPR_LABEL(mod.exit_label));
   }
-  auto it = tsi_start(swbody);
+  auto it = tsi_start(mod.swbody);
   tsi_link_before(&it, res, TSI_SAME_STMT);
   tsi_link_before(&it, build_empty_stmt(UNKNOWN_LOCATION), TSI_SAME_STMT);
 
   /* add the 'outside' of the switch, ie the 'finally'
    * aka the target of the break statements, the 'exit_label',
    * to the end of the switch body */
-  append_to_statement_list(build_empty_stmt(UNKNOWN_LOCATION), &swbody);
-  append_to_statement_list(exit_label, &swbody);
-  append_to_statement_list(build_empty_stmt(UNKNOWN_LOCATION), &swbody);
+  append_to_statement_list(build_empty_stmt(UNKNOWN_LOCATION), &(mod.swbody));
+  append_to_statement_list(mod.exit_label, &(mod.swbody));
+  append_to_statement_list(build_empty_stmt(UNKNOWN_LOCATION), &(mod.swbody));
 
   /* we are returning SWITCH_STMT_BODY(swexpr),
    * instead of just swbody, because sometimes,
