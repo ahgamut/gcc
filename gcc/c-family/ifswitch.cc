@@ -166,6 +166,15 @@ tree internal_break_stmts(tree *tp, int *check_subtree, void *data) {
   struct swmod_ctx *swt = (struct swmod_ctx *)data;
  
   switch(TREE_CODE(*tp)) {
+      case CALL_EXPR:
+          if (CALL_EXPR_IFN(*tp) == IFN_FALLTHROUGH) { 
+              /* this is an __attribute__((fallthrough))
+               * inside the switch we are modding, so we
+               * need to remove it. */
+              *tp = build_empty_stmt(EXPR_LOCATION(*tp));
+          }
+          *check_subtree = 0;
+          break;
       case BREAK_STMT:
         swt->break_count += 1;
         /* replace the break statement with a goto to the end */
