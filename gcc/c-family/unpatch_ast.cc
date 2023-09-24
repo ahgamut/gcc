@@ -30,7 +30,7 @@ tree check_usage(tree *tp, int *check_subtree, void *data) {
     if (ctx->active == 0 || ctx->mods->count == 0) {
         /* DEBUGF("substitutions complete\n"); */
         *check_subtree = 0;
-        return NULL_TREE;
+        return *tp;
     }
 
     if (LOCATION_AFTER2(loc, rng.m_start)) {

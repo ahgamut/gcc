@@ -144,17 +144,28 @@ struct swmod_ctx {
     SubContext *ctx;
 };
 
-tree check_switch_internals(tree *tp, int *check_subtree, void *data) {
+tree internal_case_labels(tree *tp, int *check_subtree, void *data) {
+  struct swmod_ctx *swt = (struct swmod_ctx *)data;
+  
+  if (TREE_CODE(*tp) == CASE_LABEL_EXPR) {
+      swt->case_count += 1;
+      swt->has_default = swt->has_default || (CASE_LOW(*tp) == NULL_TREE);
+      /* replace the case statement with a goto */
+      *tp = modded_case_label(*tp, swt->case_count, swt->swcond,
+                  swt->ifs, swt->ctx, &(swt->default_label));
+      *check_subtree = 0;
+  } else if (TREE_CODE(*tp) == SWITCH_STMT) {
+      /* we don't to mod the cases of another switch,
+       * that will happen in a another call */
+      *check_subtree = 0;
+  }
+  return NULL_TREE;
+}
+
+tree internal_break_stmts(tree *tp, int *check_subtree, void *data) {
   struct swmod_ctx *swt = (struct swmod_ctx *)data;
  
   switch(TREE_CODE(*tp)) {
-      case CASE_LABEL_EXPR:
-        swt->case_count += 1;
-        swt->has_default = swt->has_default || (CASE_LOW(*tp) == NULL_TREE);
-        /* replace the case statement with a goto */
-        *tp = modded_case_label(*tp, swt->case_count, swt->swcond,
-                    swt->ifs, swt->ctx, &(swt->default_label));
-        break;
       case BREAK_STMT:
         swt->break_count += 1;
         /* replace the break statement with a goto to the end */
@@ -188,11 +199,17 @@ tree build_modded_switch_stmt(tree swexpr, SubContext *ctx) {
   mod.default_label = NULL_TREE;
   mod.ctx = ctx;
 
-  /* TODO: maybe this should be split into two functions,
-   * one looping over and fixing the case labels, and the
-   * other walking through the tree searching for breaks.
+  /* to perform the replacements, we now have two functions,
+   * one traversing the tree fixing the case labels. this is
+   * slow because a case label can be anywhere in a switch,
+   * and so we cannot just do a surface level check.
+   *
+   * the other function traverses the tree fixing the break
+   * statements. this function ought to be faster because we
+   * only need to worry about top-level break statements.
    */
-  walk_tree_without_duplicates(&(mod.swbody), check_switch_internals, &mod);
+  walk_tree_without_duplicates(&(mod.swbody), internal_case_labels, &mod);
+  walk_tree_without_duplicates(&(mod.swbody), internal_break_stmts, &mod);
 
   /* add all the if statements to the start of the switch body */
   /* TODO: do we have to combine them via COND_EXPR_ELSE? why,
