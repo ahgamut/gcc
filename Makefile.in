@@ -1198,7 +1198,7 @@ all-host: maybe-all-guile
 all-host: maybe-all-tk
 all-host: maybe-all-libtermcap
 all-host: maybe-all-utils
-all-host: maybe-all-c++tools
+# all-host: maybe-all-c++tools
 all-host: maybe-all-gnattools
 @if lto-plugin-no-bootstrap
 all-host: maybe-all-lto-plugin

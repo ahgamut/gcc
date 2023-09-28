@@ -11,6 +11,11 @@ import (
 	"unsafe"
 )
 
+type epollevent struct {
+    events int32
+    data int64
+}
+
 //extern epoll_create
 func epollcreate(size int32) int32
 

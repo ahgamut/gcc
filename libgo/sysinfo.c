@@ -6,7 +6,7 @@
 
 /* This file is passed to GCC with the -fdump-go-spec option to
    generate a Go version of the system information.  */
-
+#include "libc/integral/normalize.inc"
 #include "config.h"
 
 #include <stddef.h>
@@ -190,165 +190,161 @@
 /* Constants that may only be defined as expressions on some systems,
    expressions too complex for -fdump-go-spec to handle.  These are
    handled specially below.  */
-enum {
 #ifdef TIOCGWINSZ
-  TIOCGWINSZ_val = TIOCGWINSZ,
+#define   TIOCGWINSZ_val TIOCGWINSZ
 #endif
 #ifdef TIOCSWINSZ
-  TIOCSWINSZ_val = TIOCSWINSZ,
+#define   TIOCSWINSZ_val TIOCSWINSZ
 #endif
 #ifdef TIOCNOTTY
-  TIOCNOTTY_val = TIOCNOTTY,
+#define   TIOCNOTTY_val TIOCNOTTY
 #endif
 #ifdef TIOCSCTTY
-  TIOCSCTTY_val = TIOCSCTTY,
+#define   TIOCSCTTY_val TIOCSCTTY
 #endif
 #ifdef TIOCGPGRP
-  TIOCGPGRP_val = TIOCGPGRP,
+#define   TIOCGPGRP_val TIOCGPGRP
 #endif
 #ifdef TIOCSPGRP
-  TIOCSPGRP_val = TIOCSPGRP,
+#define   TIOCSPGRP_val TIOCSPGRP
 #endif
 #ifdef TIOCGPTN
-  TIOCGPTN_val = TIOCGPTN,
+#define   TIOCGPTN_val TIOCGPTN
 #endif
 #ifdef TIOCSPTLCK
-  TIOCSPTLCK_val = TIOCSPTLCK,
+#define   TIOCSPTLCK_val TIOCSPTLCK
 #endif
 #ifdef TIOCGDEV
-  TIOCGDEV_val = TIOCGDEV,
+#define   TIOCGDEV_val TIOCGDEV
 #endif
 #ifdef TIOCSIG
-  TIOCSIG_val = TIOCSIG,
+#define   TIOCSIG_val TIOCSIG
 #endif
 #ifdef TCGETS
-  TCGETS_val = TCGETS,
+#define   TCGETS_val TCGETS
 #endif
 #ifdef TCSETS
-  TCSETS_val = TCSETS,
+#define   TCSETS_val TCSETS
 #endif
 #ifdef TUNSETIFF
-  TUNSETIFF_val = TUNSETIFF,
+#define   TUNSETIFF_val TUNSETIFF
 #endif
 #ifdef TUNSETNOCSUM
-  TUNSETNOCSUM_val = TUNSETNOCSUM,
+#define   TUNSETNOCSUM_val TUNSETNOCSUM
 #endif
 #ifdef TUNSETDEBUG
-  TUNSETDEBUG_val = TUNSETDEBUG,
+#define   TUNSETDEBUG_val TUNSETDEBUG
 #endif
 #ifdef TUNSETPERSIST
-  TUNSETPERSIST_val = TUNSETPERSIST,
+#define   TUNSETPERSIST_val TUNSETPERSIST
 #endif
 #ifdef TUNSETOWNER
-  TUNSETOWNER_val = TUNSETOWNER,
+#define   TUNSETOWNER_val TUNSETOWNER
 #endif
 #ifdef TUNSETLINK
-  TUNSETLINK_val = TUNSETLINK,
+#define   TUNSETLINK_val TUNSETLINK
 #endif
 #ifdef TUNSETGROUP
-  TUNSETGROUP_val = TUNSETGROUP,
+#define   TUNSETGROUP_val TUNSETGROUP
 #endif
 #ifdef TUNGETFEATURES
-  TUNGETFEATURES_val = TUNGETFEATURES,
+#define   TUNGETFEATURES_val TUNGETFEATURES
 #endif
 #ifdef TUNSETOFFLOAD
-  TUNSETOFFLOAD_val = TUNSETOFFLOAD,
+#define   TUNSETOFFLOAD_val TUNSETOFFLOAD
 #endif
 #ifdef TUNSETTXFILTER
-  TUNSETTXFILTER_val = TUNSETTXFILTER,
+#define   TUNSETTXFILTER_val TUNSETTXFILTER
 #endif
 #ifdef TUNGETIFF
-  TUNGETIFF_val = TUNGETIFF,
+#define   TUNGETIFF_val TUNGETIFF
 #endif
 #ifdef TUNGETSNDBUF
-  TUNGETSNDBUF_val = TUNGETSNDBUF,
+#define   TUNGETSNDBUF_val TUNGETSNDBUF
 #endif
 #ifdef TUNSETSNDBUF
-  TUNSETSNDBUF_val = TUNSETSNDBUF,
+#define   TUNSETSNDBUF_val TUNSETSNDBUF
 #endif
 #ifdef TUNATTACHFILTER
-  TUNATTACHFILTER_val = TUNATTACHFILTER,
+#define   TUNATTACHFILTER_val TUNATTACHFILTER
 #endif
 #ifdef TUNDETACHFILTER
-  TUNDETACHFILTER_val = TUNDETACHFILTER,
+#define   TUNDETACHFILTER_val TUNDETACHFILTER
 #endif
 #ifdef TUNGETVNETHDRSZ
-  TUNGETVNETHDRSZ_val = TUNGETVNETHDRSZ,
+#define   TUNGETVNETHDRSZ_val TUNGETVNETHDRSZ
 #endif
 #ifdef TUNSETVNETHDRSZ
-  TUNSETVNETHDRSZ_val = TUNSETVNETHDRSZ,
+#define   TUNSETVNETHDRSZ_val TUNSETVNETHDRSZ
 #endif
 #ifdef TUNSETQUEUE
-  TUNSETQUEUE_val = TUNSETQUEUE,
+#define   TUNSETQUEUE_val TUNSETQUEUE
 #endif
 #ifdef TUNSETIFINDEX
-  TUNSETIFINDEX_val = TUNSETIFINDEX,
+#define   TUNSETIFINDEX_val TUNSETIFINDEX
 #endif
 #ifdef TUNGETFILTER
-  TUNGETFILTER_val = TUNGETFILTER,
+#define   TUNGETFILTER_val TUNGETFILTER
 #endif
 #ifdef NLA_HDRLEN
-  NLA_HDRLEN_val = NLA_HDRLEN,
+#define   NLA_HDRLEN_val NLA_HDRLEN
 #endif
 #ifdef BIOCFLUSH
-  BIOCFLUSH_val = BIOCFLUSH,
+#define   BIOCFLUSH_val BIOCFLUSH
 #endif
 #ifdef BIOCGBLEN
-  BIOCGBLEN_val = BIOCGBLEN,
+#define   BIOCGBLEN_val BIOCGBLEN
 #endif
 #ifdef BIOCGDLT
-  BIOCGDLT_val = BIOCGDLT,
+#define   BIOCGDLT_val BIOCGDLT
 #endif
 #ifdef BIOCGETIF
-  BIOCGETIF_val = BIOCGETIF,
+#define   BIOCGETIF_val BIOCGETIF
 #endif
 #ifdef BIOCGHDRCMPLT
-  BIOCGHDRCMPLT_val = BIOCGHDRCMPLT,
+#define   BIOCGHDRCMPLT_val BIOCGHDRCMPLT
 #endif
 #ifdef BIOCGRTIMEOUT
-  BIOCGRTIMEOUT_val = BIOCGRTIMEOUT,
+#define   BIOCGRTIMEOUT_val BIOCGRTIMEOUT
 #endif
 #ifdef BIOCGSTATS
-  BIOCGSTATS_val = BIOCGSTATS,
+#define   BIOCGSTATS_val BIOCGSTATS
 #endif
 #ifdef BIOCIMMEDIATE
-  BIOCIMMEDIATE_val = BIOCIMMEDIATE,
+#define   BIOCIMMEDIATE_val BIOCIMMEDIATE
 #endif
 #ifdef BIOCPROMISC
-  BIOCPROMISC_val = BIOCPROMISC,
+#define   BIOCPROMISC_val BIOCPROMISC
 #endif
 #ifdef BIOCSBLEN
-  BIOCSBLEN_val = BIOCSBLEN,
+#define   BIOCSBLEN_val BIOCSBLEN
 #endif
 #ifdef BIOCSDLT
-  BIOCSDLT_val = BIOCSDLT,
+#define   BIOCSDLT_val BIOCSDLT
 #endif
 #ifdef BIOCSETF
-  BIOCSETF_val = BIOCSETF,
+#define   BIOCSETF_val BIOCSETF
 #endif
 #ifdef BIOCSETIF
-  BIOCSETIF_val = BIOCSETIF,
+#define   BIOCSETIF_val BIOCSETIF
 #endif
 #ifdef BIOCSHDRCMPLT
-  BIOCSHDRCMPLT_val = BIOCSHDRCMPLT,
+#define   BIOCSHDRCMPLT_val BIOCSHDRCMPLT
 #endif
 #ifdef BIOCSRTIMEOUT
-  BIOCSRTIMEOUT_val = BIOCSRTIMEOUT,
+#define   BIOCSRTIMEOUT_val BIOCSRTIMEOUT
 #endif
 #ifdef BIOCVERSION
-  BIOCVERSION_val = BIOCVERSION,
+#define   BIOCVERSION_val BIOCVERSION
 #endif
 #ifdef SO_RCVTIMEO
-  SO_RCVTIMEO_val = SO_RCVTIMEO,
+#define   SO_RCVTIMEO_val SO_RCVTIMEO
 #endif
-};
 
 // SIOCGIFMTU can't be added in the above enum as it might
 // be signed in some OSes.
 #ifdef SIOCGIFMTU
-enum {
-  SIOCGIFMTU_val = SIOCGIFMTU,
-};
+#define   SIOCGIFMTU_val SIOCGIFMTU
 #endif
 
 #if defined(HAVE_SYS_EPOLL_H)
