@@ -29,13 +29,13 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 
 /* C libraries supported on Linux.  */
 #ifdef SINGLE_LIBC
-#define OPTION_GLIBC  (DEFAULT_LIBC == LIBC_GLIBC)
+#define OPTION_GLIBC  (DEFAULT_LIBC == LIBC_GLIBC || DEFAULT_LIBC == LIBC_COSMO)
 #define OPTION_UCLIBC (DEFAULT_LIBC == LIBC_UCLIBC)
 #define OPTION_BIONIC (DEFAULT_LIBC == LIBC_BIONIC)
 #undef OPTION_MUSL
 #define OPTION_MUSL   (DEFAULT_LIBC == LIBC_MUSL)
 #else
-#define OPTION_GLIBC  (linux_libc == LIBC_GLIBC)
+#define OPTION_GLIBC  (linux_libc == LIBC_GLIBC || DEFAULT_LIBC == LIBC_COSMO)
 #define OPTION_UCLIBC (linux_libc == LIBC_UCLIBC)
 #define OPTION_BIONIC (linux_libc == LIBC_BIONIC)
 #undef OPTION_MUSL
@@ -84,6 +84,9 @@ see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 #define CHOOSE_DYNAMIC_LINKER(G, U, B, M) \
   CHOOSE_DYNAMIC_LINKER1 ("mbionic", "mglibc", "muclibc", "mmusl", B, G, U, M)
 #elif DEFAULT_LIBC == LIBC_MUSL
+#define CHOOSE_DYNAMIC_LINKER(G, U, B, M) \
+  CHOOSE_DYNAMIC_LINKER1 ("mmusl", "mglibc", "muclibc", "mbionic", M, G, U, B)
+#elif DEFAULT_LIBC == LIBC_COSMO
 #define CHOOSE_DYNAMIC_LINKER(G, U, B, M) \
   CHOOSE_DYNAMIC_LINKER1 ("mmusl", "mglibc", "muclibc", "mbionic", M, G, U, B)
 #else
