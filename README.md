@@ -1,39 +1,42 @@
 # `-fportcosmo`: patching `gcc` to build C software with Cosmopolitan Libc
 
-This 2kLOC `gcc` patch simplifies the compilation of C software with
+This `gcc` patch simplifies the compilation of C software with
 [Cosmopolitan Libc][cosmo], specifically solving the issues related to system
-constants (it avoids the `switch case is not constant` and `initializer element
-is not constant` errors by rewriting the AST at the necessary locations). The
-code is based on [my experimental GCC plugin][plugin], with simplifications and
-extra features from being able to patch gcc itself. All my code in this patch is
-under the [ISC License][isc].
+constants: it avoids the `switch case is not constant` and `initializer element
+is not constant` errors by rewriting the AST at the necessary locations. 
+
+The code is based on [my experimental GCC plugin][plugin], with simplifications
+and extra features from being able to patch gcc itself. All my code in this
+patch is under the [ISC License][isc].
 
 ## How to use this feature?
 
 First, you would need to obtain a patched `gcc` built with this patch included:
 
-* You can build via the usual `./configure` from this repo, or
-* You can build `gcc` 11.2.0 on Linux [from my fork of
-  `musl-cross-make`][mcross], where this patch is available as a single diff, or
+* You can use the `gcc` binaries built with this patch on Github Actions:
+  https://github.com/ahgamut/superconfigure/releases
 * You can use the `gcc` binaries [bundled in the Cosmopolitan Libc
   monorepo][gcc-3p] which have been built with a recent version of this patch,
   along with the [`cosmocc` wrapper script][cosmocc].
+* You can build via the usual `./configure` from this repo
+* You can build `gcc` 11.2.0 on Linux [from my fork of
+  `musl-cross-make`][mcross], where this patch is available as a single diff, or
 
-Once you have built `gcc` with this patch, just pass `-fportcosmo` as a compiler
+Once you have a `gcc` built with this patch, just pass `-fportcosmo` as a compiler
 flag when building your C software. If you'd prefer specific temporary integer
 values to be used during the AST patching process, you can `#define` them with
-the `__tmpcosmo_` prefix, like `#define __tmpcosmo_SIGILL 15782233`.
+the `__tmpcosmo_` prefix, like `#define __tmpcosmo_SIGTERM 15782233`.
 
 ## How does it work?
 
 `-fportcosmo` works by rewriting the AST. Think of it as a "context-sensitive
-`defmacro` LISP-y error handler", that activates before `gcc` can trigger a
+LISP-y `defmacro` error handler", that activates before `gcc` can trigger a
 `switch case is not constant` or `initializer element is not constant` error.
 
 * the error is triggered because `gcc` expects the case or initializer to be a
   compile-time constant, which it isn't
 * this patch activates and avoids the "error" by providing a temporary `int32_t`
-  constant to the AST, which you can provide via a `#define __tmpcosmo_SIGILL`
+  constant to the AST, which you can provide via a `#define __tmpcosmo_SIGTERM`
   in your code, or let the patch choose it automatically with values starting
   from 15840000
 * after the complete AST has been constructed, this patch walks through the AST
@@ -47,9 +50,9 @@ the `__tmpcosmo_` prefix, like `#define __tmpcosmo_SIGILL 15782233`.
 For an extended explanation, refer to the three READMEs [with my
 plugin][plugin].  Note that this patch currently does not work with: 
 
-* `g++` (due to `constexpr` interference, but now most switch cases would work)
+* `g++` with `constexpr` initializations
 * `enum`s (rewrite to `#define`s instead), or 
-* wacky situtations where `SIGILL` is used as an array index within an
+* wacky situtations where `SIGTERM` is used as an array index within an
   initializer (hello pls `busybox` why). 
 
 Finally, remember this patch is just a convenience -- you could always rewrite
