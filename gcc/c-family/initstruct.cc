@@ -74,6 +74,7 @@ void set_values_based_on_ctor(tree ctor, subu_list *list, tree body, tree lhs,
 
 void update_global_decls(tree dcl, SubContext *ctx) {
   tree body = alloc_stmt_list();
+  tree replacement = NULL_TREE;
   subu_node *use = NULL;
   char chk[STRING_BUFFER_SIZE];
 
@@ -86,11 +87,11 @@ void update_global_decls(tree dcl, SubContext *ctx) {
    *
    * static int foo = __tmpcosmo_VAR;
    * __attribute__((constructor)) __hidden_ctor1() {
-   *   foo = VAR;
+   *   foo = VAR_OR_EXPR;
    * }
    * static struct toy myvalue = {.x=1, .y=__tmpcosmo_VAR};
    * __attribute__((constructor)) __hidden_ctor2() {
-   *    myvalue.y = VAR;
+   *    myvalue.y = VAR_OR_EXPR;
    * }
    *
    * the modifier functions have the constructor attribute,
@@ -105,7 +106,8 @@ void update_global_decls(tree dcl, SubContext *ctx) {
   if (INTEGRAL_TYPE_P(TREE_TYPE(dcl)) &&
       get_subu_elem(ctx->mods, ctx->mods->start, &use) &&
       /* use is non-NULL if get_subu_elem succeeds */
-      check_magic_equal(DECL_INITIAL(dcl), use->name)) {
+      check_magic_equal(DECL_INITIAL(dcl), use->name) && 
+      arg_should_be_unpatched(DECL_INITIAL(dcl), use, &replacement)) {
     if (TREE_READONLY(dcl)) {
       error_at(EXPR_LOCATION(dcl), "cannot substitute this constant\n");
       /* actually I can, but the issue is if one of gcc's optimizations
@@ -115,7 +117,7 @@ void update_global_decls(tree dcl, SubContext *ctx) {
       return;
     }
     append_to_statement_list(
-        build2(MODIFY_EXPR, void_type_node, dcl, VAR_NAME_AS_TREE(use->name)),
+        build2(MODIFY_EXPR, void_type_node, dcl, replacement),
         &body);
     remove_subu_elem(ctx->mods, use);
     cgraph_build_static_cdtor('I', body, 0);
