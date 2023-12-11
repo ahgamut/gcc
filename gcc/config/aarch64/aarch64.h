@@ -1316,4 +1316,6 @@ extern poly_uint16 aarch64_sve_vg;
 		STACK_BOUNDARY / BITS_PER_UNIT)		   \
     : (crtl->outgoing_args_size + STACK_POINTER_OFFSET))
 
+#define DONT_USE_BUILTIN_SETJMP
+
 #endif /* GCC_AARCH64_H */

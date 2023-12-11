@@ -3080,6 +3080,8 @@ extern void debug_dispatch_window (int);
 
 #define TARGET_SUPPORTS_WIDE_INT 1
 
+#define DONT_USE_BUILTIN_SETJMP
+
 #if !defined(GENERATOR_FILE) && !defined(IN_LIBGCC2)
 extern enum attr_cpu ix86_schedule;
 
