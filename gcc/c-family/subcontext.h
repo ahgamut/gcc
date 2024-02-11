@@ -34,11 +34,11 @@ struct tmpconst {
 };
 typedef struct tmpconst tmpconst;
 
-struct free_string_hash : pointer_hash<char>, typed_free_remove<char> {
+struct free_string_hash2 : pointer_hash<char>, typed_free_remove<char> {
     static inline hashval_t hash(char *id) { return htab_hash_string(id); };
     static inline bool equal(char *a, char *b) { return strcmp(a, b) == 0; };
 };
-using tmpmap_traits = simple_hashmap_traits<free_string_hash, tmpconst>;
+using tmpmap_traits = simple_hashmap_traits<free_string_hash2, tmpconst>;
 using tmpmap = hash_map<char, tmpconst, tmpmap_traits>;
 
 /* Substitution Context */
