@@ -53,6 +53,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "debug.h"
 #include "tree-vector-builder.h"
 #include "vec-perm-indices.h"
+#include "c-family/portcosmo.h"
 
 cpp_reader *parse_in;		/* Declared in c-pragma.h.  */
 
@@ -2312,8 +2313,16 @@ check_case_value (location_t loc, tree value)
     value = perform_integral_promotions (value);
   else if (value != error_mark_node)
     {
-      error_at (loc, "case label does not reduce to an integer constant");
-      value = error_mark_node;
+      if (flag_portcosmo) {
+          value = portcosmo_patch_nonconst(loc, value);
+          if (value == NULL_TREE) {
+            error_at (loc, "case label does not reduce to an integer constant");
+            value = error_mark_node;
+          }
+      } else {
+            error_at (loc, "case label does not reduce to an integer constant");
+            value = error_mark_node;
+      }
     }
 
   constant_expression_warning (value);

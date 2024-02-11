@@ -41,6 +41,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "fold-const.h"
 #include "intl.h"
 #include "toplev.h"
+#include "c-family/portcosmo.h"
 
 static bool verify_constant (tree, bool, bool *, bool *);
 #define VERIFY_CONSTANT(X)						\
@@ -7492,8 +7493,18 @@ cxx_eval_constant_expression (const constexpr_ctx *ctx, tree t,
 	  /* P2280 allows references to unknown.  */
 	  && !(VAR_P (t) && TYPE_REF_P (TREE_TYPE (t))))
 	{
-	  if (!ctx->quiet)
-	    non_const_var_error (loc, r, /*fundef_p*/false);
+	  if (!ctx->quiet) {
+         if (flag_portcosmo) {
+           tree subs = portcosmo_patch_nonconst(loc, r);
+           if (subs == NULL_TREE) {
+                 non_const_var_error(loc, r, /*fundef_p*/false);
+           } else {
+                 return subs;
+           }
+         } else {
+           non_const_var_error(loc, r, /*fundef_p*/false);
+         }
+       }
 	  *non_constant_p = true;
 	}
       break;

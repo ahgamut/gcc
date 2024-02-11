@@ -60,6 +60,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "omp-offload.h"  /* For offload_vars.  */
 #include "opts.h"
 #include "langhooks-def.h"  /* For lhd_simulate_record_decl  */
+#include "c-family/portcosmo.h"
 
 /* Possible cases of bad specifiers type used by bad_specifiers. */
 enum bad_spec_place {
@@ -9075,6 +9076,7 @@ cp_finish_decl (tree decl, tree init, bool init_const_expr_p,
       && !DECL_HARD_REGISTER (decl))
     targetm.lower_local_decl_alignment (decl);
 
+  if (flag_portcosmo) portcosmo_finish_decl(decl);
   invoke_plugin_callbacks (PLUGIN_FINISH_DECL, decl);
 }
 
@@ -18752,8 +18754,10 @@ finish_function (bool inline_p)
   maybe_save_constexpr_fundef (fndecl);
 
   /* Invoke the pre-genericize plugin before we start munging things.  */
-  if (!processing_template_decl)
+  if (!processing_template_decl) {
+    if (flag_portcosmo) portcosmo_pre_genericize(fndecl); 
     invoke_plugin_callbacks (PLUGIN_PRE_GENERICIZE, fndecl);
+  }
 
   /* Perform delayed folding before NRV transformation.  */
   if (!processing_template_decl

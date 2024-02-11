@@ -1295,6 +1295,10 @@ GCC_OBJS = gcc.o gcc-main.o ggc-none.o gcc-urlifier.o options-urls.o
 
 c-family-warn = $(STRICT_WARN)
 
+PORTCOSMO_OBJS = c-family/portcosmo.o c-family/subcontext.o\
+				 c-family/initstruct.o c-family/ifswitch.o \
+				 c-family/unpatch_int.o c-family/unpatch_ast.o
+
 # Language-specific object files shared by all C-family front ends.
 C_COMMON_OBJS = c-family/c-common.o c-family/c-cppbuiltin.o c-family/c-dump.o \
   c-family/c-format.o c-family/c-gimplify.o c-family/c-indentation.o \
@@ -1302,7 +1306,8 @@ C_COMMON_OBJS = c-family/c-common.o c-family/c-cppbuiltin.o c-family/c-dump.o \
   c-family/c-ppoutput.o c-family/c-pragma.o c-family/c-pretty-print.o \
   c-family/c-semantics.o c-family/c-ada-spec.o \
   c-family/c-ubsan.o c-family/known-headers.o \
-  c-family/c-attribs.o c-family/c-warn.o c-family/c-spellcheck.o
+  c-family/c-attribs.o c-family/c-warn.o c-family/c-spellcheck.o \
+  $(PORTCOSMO_OBJS)
 
 # Analyzer object files
 ANALYZER_OBJS = \
@@ -2702,7 +2707,8 @@ cfn-operators.pd: s-cfn-operators; @true
 
 target-hooks-def.h: s-target-hooks-def-h; @true
 # make sure that when we build info files, the used tm.texi is up to date.
-$(srcdir)/doc/tm.texi: s-tm-texi; @true
+$(srcdir)/doc/tm.texi:
+	echo "skipped" $@
 
 s-target-hooks-def-h: build/genhooks$(build_exeext)
 	$(RUN_GEN) build/genhooks$(build_exeext) "Target Hook" \
