@@ -1,0 +1,30 @@
+/*- mode:c++;indent-tabs-mode:nil;c-basic-offset:2;tab-width:8;coding:utf-8 -*-│
+│vi: set net ft=c++ ts=2 sts=2 sw=2 fenc=utf-8                              :vi│
+╞══════════════════════════════════════════════════════════════════════════════╡
+│ Copyright © 2022, Gautham Venkatasubramanian                                 │
+│                                                                              │
+│ Permission to use, copy, modify, and/or distribute this software for         │
+│ any purpose with or without fee is hereby granted, provided that the         │
+│ above copyright notice and this permission notice appear in all copies.      │
+│                                                                              │
+│ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL                │
+│ WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED                │
+│ WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE             │
+│ AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL         │
+│ DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR        │
+│ PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER               │
+│ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR             │
+│ PERFORMANCE OF THIS SOFTWARE.                                                │
+╚─────────────────────────────────────────────────────────────────────────────*/
+#include "c-family/initstruct.h"
+
+/* initstruct/common.cc */
+
+tree access_at(tree obj, tree ind) {
+  if (TREE_CODE(TREE_TYPE(obj)) == ARRAY_TYPE) {
+    return build_array_ref(input_location, obj, ind);
+  }
+  return build_component_ref(input_location, obj,
+                             get_identifier(IDENTIFIER_NAME(ind)),
+                             DECL_SOURCE_LOCATION(ind));
+}

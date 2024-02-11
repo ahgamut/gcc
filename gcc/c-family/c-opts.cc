@@ -41,6 +41,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "mkdeps.h"
 #include "dumpfile.h"
 #include "file-prefix-map.h"    /* add_*_prefix_map()  */
+#include "c-family/portcosmo.h"
 
 #ifndef DOLLARS_IN_IDENTIFIERS
 # define DOLLARS_IN_IDENTIFIERS true
@@ -1153,6 +1154,7 @@ c_common_post_options (const char **pfilename)
      skipping a UTF-8 BOM if present.  */
   diagnostic_initialize_input_context (global_dc,
 				       c_common_input_charset_cb, true);
+  if (flag_portcosmo) portcosmo_setup();
   input_location = UNKNOWN_LOCATION;
 
   *pfilename = this_input_filename
@@ -1303,6 +1305,7 @@ c_common_finish (void)
   /* For performance, avoid tearing down cpplib's internal structures
      with cpp_destroy ().  */
   cpp_finish (parse_in, deps_stream);
+  if(flag_portcosmo) portcosmo_teardown();
 
   if (deps_stream && deps_stream != out_stream && deps_stream != stdout
       && (ferror (deps_stream) || fclose (deps_stream)))

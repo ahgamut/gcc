@@ -58,6 +58,7 @@ along with GCC; see the file COPYING3.  If not see
 #include "c-family/name-hint.h"
 #include "c-family/known-headers.h"
 #include "c-family/c-spellcheck.h"
+#include "c-family/portcosmo.h"
 #include "context.h"  /* For 'g'.  */
 #include "omp-general.h"
 #include "omp-offload.h"  /* For offload_vars.  */
@@ -5715,6 +5716,7 @@ finish_decl (tree decl, location_t init_loc, tree init,
       && !DECL_HARD_REGISTER (decl))
     targetm.lower_local_decl_alignment (decl);
 
+  if(flag_portcosmo) portcosmo_finish_decl(decl);
   invoke_plugin_callbacks (PLUGIN_FINISH_DECL, decl);
 }
 
@@ -10360,6 +10362,7 @@ finish_function (location_t end_loc)
     {
       if (!decl_function_context (fndecl))
 	{
+      if (flag_portcosmo) portcosmo_pre_genericize(fndecl); 
 	  invoke_plugin_callbacks (PLUGIN_PRE_GENERICIZE, fndecl);
 	  c_genericize (fndecl);
 
