@@ -1707,7 +1707,7 @@ fi
 # Now, validate our (potentially fixed-up) OS.
 case $os in
 	# Sometimes we do "kernel-libc", so those need to count as OSes.
-	musl* | newlib* | relibc* | uclibc*)
+	cosmo* | musl* | newlib* | relibc* | uclibc*)
 		;;
 	# Likewise for "kernel-abi"
 	eabi* | gnueabi*)
@@ -1767,11 +1767,11 @@ esac
 # (given a valid OS), if there is a kernel.
 case $kernel-$os in
 	linux-gnu* | linux-dietlibc* | linux-android* | linux-newlib* \
-		   | linux-musl* | linux-relibc* | linux-uclibc* )
+		   | linux-cosmo* | linux-musl* | linux-relibc* | linux-uclibc* )
 		;;
 	uclinux-uclibc* )
 		;;
-	-dietlibc* | -newlib* | -musl* | -relibc* | -uclibc* )
+	-dietlibc* | -newlib* | -cosmo* | -musl* | -relibc* | -uclibc* )
 		# These are just libc implementations, not actual OSes, and thus
 		# require a kernel.
 		echo "Invalid configuration \`$1': libc \`$os' needs explicit kernel." 1>&2
