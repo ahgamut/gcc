@@ -25,6 +25,6 @@ tree access_at(tree obj, tree ind) {
     return build_array_ref(input_location, obj, ind);
   }
   return build_component_ref(input_location, obj,
-                             get_identifier(IDENTIFIER_NAME(ind)),
+                             DECL_NAME(ind),
                              DECL_SOURCE_LOCATION(ind));
 }
