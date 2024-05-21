@@ -1882,7 +1882,7 @@ C ObjC C++ ObjC++ Var(flag_openmp_simd)
 Enable OpenMP's SIMD directives.
 
 fportcosmo
-C C++ RejectNegative Var(flag_portcosmo)
+C ObjC C++ ObjC++ RejectNegative Var(flag_portcosmo)
 Enable AST rewriting for Cosmopolitan Libc magic numbers.
 
 foperator-names
