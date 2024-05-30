@@ -24,7 +24,6 @@ along with GCC; see the file COPYING3.  If not see
 // will include it later under the above check
 #include <sys/socket.h>
 #endif
-#define INCLUDE_STRING
 #define INCLUDE_VECTOR
 #define INCLUDE_MAP
 #define INCLUDE_MEMORY
