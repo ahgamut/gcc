@@ -183,7 +183,12 @@ tree internal_break_stmts(tree *tp, int *check_subtree, void *data) {
       case BIND_EXPR:
       case STATEMENT_LIST:
       case COND_EXPR:
+      case IF_STMT:
       case CLEANUP_STMT:
+      case CLEANUP_POINT_EXPR:
+      case EXPR_STMT:
+      case TRY_BLOCK:
+      case HANDLER:
         /* we want to check the subtrees, because 
          * they may contain break statements */
         break;

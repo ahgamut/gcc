@@ -202,7 +202,7 @@ tree insert_tmpconst_value(const char *s, tree later) {
             return NULL_TREE;
         }
     } else {
-        DEBUGF("returning existing entry for unknown expression\n", s);
+        DEBUGF("returning existing entry for unknown expression\n");
         return build_int_cst(long_long_integer_type_node, z->raw);
     }
 }
